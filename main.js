@@ -289,18 +289,23 @@ function setCharacterMode(mode) {
 
 // ---- ★ 模型实时生成：档案写了 psd 的角色，控制中心「系统」页能打开它；PSD 一保存就重新生成模型、原地换上 ----
 //   tools/model_build/psd_prepare.py 把手改的 PSD 理顺（全部可见、蒙版 / 剪贴图层合进像素、单层闭眼拆左右、# 开头的跳过）
-//   → PSD2Live（jar，约 3 秒）→ 产物检查过再换进模型目录（旧的留在 <模型目录>/.prev）→ 通知渲染端重载。
+//   → PSD2Live（约 3～7 秒）→ 产物检查过再换进模型目录（旧的留在 <模型目录>/.prev）→ 通知渲染端重载。
 //   生成失败：桌宠保持上一版，控制中心显示原因。
-//   工具路径在设置文件 config.json 的 modelBuild {python, java, jar} 里改；不写 = PATH 里的 python / JAVA_HOME 或 PATH 里的 java /
-//   tools/psd2live/PSD2Live.jar。
+//   PSD2Live 两种都行：官方免安装包解压到 tools/psd2live/（PSD2Live.exe，自带 Java），或者自己编的 PSD2Live.jar（要 Java 21）。
+//   工具路径在设置文件 config.json 的 modelBuild {python, java, jar} 里改（jar 也可以写 PSD2Live.exe 的路径）；
+//   不写 = PATH 里的 python / tools/psd2live/PSD2Live.exe，没有就 tools/psd2live/PSD2Live.jar + JAVA_HOME 或 PATH 里的 java。
 const MB = { st: {}, sig: {}, seen: {}, buildSig: {}, rev: {}, busy: null, again: {}, queue: [], timers: {}, watchers: {} };
 function mbTools() {
   const o = cfg.modelBuild || {};
   const javaHome = process.env.JAVA_HOME ? path.join(process.env.JAVA_HOME, 'bin', process.platform === 'win32' ? 'java.exe' : 'java') : '';
+  const dir = path.join(__dirname, 'tools', 'psd2live');
+  const exe = path.join(dir, process.platform === 'win32' ? 'PSD2Live.exe' : 'PSD2Live');
+  const jar = o.jar || (fs.existsSync(exe) ? exe : path.join(dir, 'PSD2Live.jar'));
   return {
     python: o.python || 'python',
     java: o.java || (javaHome && fs.existsSync(javaHome) ? javaHome : 'java'),
-    jar: o.jar || path.join(__dirname, 'tools', 'psd2live', 'PSD2Live.jar'),
+    jar,
+    native: !/\.jar$/i.test(jar),   // 官方安装包里的 PSD2Live.exe：直接运行，不用 java
     prepare: path.join(__dirname, 'tools', 'model_build', 'psd_prepare.py'),
   };
 }
@@ -333,7 +338,10 @@ function cmdExists(cmd) {
   }
   return false;
 }
-function mbMissing() { const t = mbTools(); return ['python', 'java', 'jar', 'prepare'].filter((k) => !cmdExists(t[k])).map((k) => t[k]); }
+function mbMissing() {
+  const t = mbTools();
+  return (t.native ? ['python', 'jar', 'prepare'] : ['python', 'java', 'jar', 'prepare']).filter((k) => !cmdExists(t[k])).map((k) => t[k]);
+}
 // 控制中心要的：当前角色的 PSD 在哪、生成到哪一步了
 function mbSnapshot(id) {
   id = id || activeChar;
@@ -347,12 +355,12 @@ function mbSet(id, patch) {
   }
 }
 // 跑一个子进程（不弹窗），stdout 按行回调（PSD2Live 的进度行）；超时就停掉它
-function mbRun(cmd, args, timeoutMs, onLine) {
+function mbRun(cmd, args, timeoutMs, onLine, extraEnv) {
   return new Promise((resolve) => {
     let out = '', err = '', buf = '';
     let child;
     try {
-      child = spawn(cmd, args, { cwd: __dirname, windowsHide: true, env: Object.assign({}, process.env, { PYTHONIOENCODING: 'utf-8' }) });
+      child = spawn(cmd, args, { cwd: __dirname, windowsHide: true, env: Object.assign({}, process.env, { PYTHONIOENCODING: 'utf-8' }, extraEnv || {}) });
     } catch (e) { resolve({ code: -1, out, err: e.message }); return; }
     const timer = setTimeout(() => {
       err += '\n超过 ' + Math.round(timeoutMs / 1000) + ' 秒没做完，已停下';
@@ -373,6 +381,17 @@ function tailText(s, n) {
   return String(s || '').split(/\r?\n/).map((x) => x.trim()).filter(Boolean).slice(-(n || 3)).join(' / ').slice(0, 400);
 }
 // 旧模型（<base>.*）挪进 .prev，新产物放进模型目录；中途出错就挪回去
+// 挪文件 / 目录：同一个盘直接改名；跨盘（生成目录在用户数据目录、模型在程序目录，常常不在一个盘）就复制再删
+function moveSync(from, to) {
+  try { fs.renameSync(from, to); } catch (e) {
+    if (e.code !== 'EXDEV') throw e;
+    try { fs.cpSync(from, to, { recursive: true }); } catch (e2) {
+      try { fs.rmSync(to, { recursive: true, force: true }); } catch (e3) { /* ignore */ }   // 别留半份
+      throw e2;
+    }
+    fs.rmSync(from, { recursive: true, force: true });
+  }
+}
 function mbSwap(outDir, dir, base) {
   const prev = path.join(dir, '.prev');
   fs.rmSync(prev, { recursive: true, force: true });
@@ -382,7 +401,7 @@ function mbSwap(outDir, dir, base) {
     for (const f of fs.readdirSync(dir)) {
       if (f.startsWith(base + '.')) { fs.renameSync(path.join(dir, f), path.join(prev, f)); moved.push(f); }
     }
-    for (const f of fs.readdirSync(outDir)) { fs.renameSync(path.join(outDir, f), path.join(dir, f)); placed.push(f); }
+    for (const f of fs.readdirSync(outDir)) { moveSync(path.join(outDir, f), path.join(dir, f)); placed.push(f); }
   } catch (e) {
     for (const f of placed) { try { fs.rmSync(path.join(dir, f), { recursive: true, force: true }); } catch (e2) { /* ignore */ } }
     for (const f of moved) { try { fs.renameSync(path.join(prev, f), path.join(dir, f)); } catch (e2) { /* ignore */ } }
@@ -418,13 +437,17 @@ async function mbBuild(id, why) {
     let prep = {};
     try { prep = JSON.parse(String(r1.out).trim().split(/\r?\n/).pop()); } catch (e) { /* 没有摘要也照样生成 */ }
     mbSet(id, { stage: '生成模型', notes: Array.isArray(prep.notes) ? prep.notes.slice(0, 20) : [], layers: Array.isArray(prep.layers) ? prep.layers.length : 0 });
-    const r2 = await mbRun(tools.java, ['-Xmx4g', '-Dfile.encoding=UTF-8', '-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8',
-      '-jar', tools.jar, '--input', staged, '--output', outDir, '--lang', 'zh'], 180000, (ln) => {
+    const p2lArgs = ['--input', staged, '--output', outDir, '--lang', 'zh'];
+    const onP2lLine = (ln) => {
       const m = /^(\d+)%\s+(.+)$/.exec(ln);
       if (m) mbSet(id, { stage: m[2] + '（' + m[1] + '%）' });
-    });
+    };
+    // 官方安装包的 PSD2Live.exe 自带 Java：编码参数经 JAVA_TOOL_OPTIONS 给（它会在 stderr 多打一行 Picked up…，下面滤掉）
+    const r2 = tools.native
+      ? await mbRun(tools.jar, p2lArgs, 180000, onP2lLine, { JAVA_TOOL_OPTIONS: '-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8' })
+      : await mbRun(tools.java, ['-Xmx4g', '-Dfile.encoding=UTF-8', '-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8', '-jar', tools.jar].concat(p2lArgs), 180000, onP2lLine);
     if (r2.code !== 0) throw new Error('PSD2Live 失败：' + tailText(r2.err || r2.out));
-    const warnings = String(r2.err || '').split(/\r?\n/).map((s) => s.trim()).filter(Boolean).slice(0, 40);
+    const warnings = String(r2.err || '').split(/\r?\n/).map((s) => s.trim()).filter((s) => s && !/^Picked up JAVA_TOOL_OPTIONS/.test(s)).slice(0, 40);
     // 生成工具不认识的图层名（照样显示，但不会被当成嘴 / 眼睛这些部件）：档案 psdExtraLayers 里写了的是本来就这样的，不提示
     const unknownLine = warnings.find((w) => /未知图层/.test(w));
     const extra = Array.isArray(prof(id).psdExtraLayers) ? prof(id).psdExtraLayers : [];
@@ -495,6 +518,11 @@ function mbWatch() {
     const fresh = mtime(modelFile(id)) >= mtime(psd);
     if (fresh && mbStampOk(id)) MB.sig[id] = fileSig(psd);
     else if (fresh) plog('model watch ' + id + ': build options changed ' + JSON.stringify(mbOpts(id)));
+    // 生成工具没装（刚下载、只想用自带模型）：启动时不去生成，直接用现成的模型；真改了 PSD 再报缺什么
+    if (!MB.sig[id] && fs.existsSync(modelFile(id)) && mbMissing().length) {
+      MB.sig[id] = fileSig(psd);
+      plog('model watch ' + id + ': tools missing, using the existing model');
+    }
     try {
       MB.watchers[id] = fs.watch(path.dirname(psd), { persistent: false }, () => {
         clearTimeout(MB.timers[id]);

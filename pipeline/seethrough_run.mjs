@@ -8,6 +8,8 @@ import path from 'node:path';
 const [img, outDir, resArg, seedArg] = process.argv.slice(2);
 if (!img || !outDir) { console.error('usage: node seethrough_run.mjs <image> <outDir> [res] [seed]'); process.exit(2); }
 const COMFY = process.env.COMFY_URL || 'http://127.0.0.1:8188';
+// models are fetched from Hugging Face the first time unless SEETHROUGH_NO_DOWNLOAD=1 (then they must already be in ComfyUI/models)
+const AUTO_DOWNLOAD = process.env.SEETHROUGH_NO_DOWNLOAD !== '1';
 const res = Number(resArg || 1280);
 const seed = Number(seedArg || 42);
 
@@ -40,11 +42,11 @@ form.append('image', new Blob([fs.readFileSync(img)]), path.basename(img));
 form.append('overwrite', 'true');
 const up = await (await fetch(`${COMFY}/upload/image`, { method: 'POST', body: form })).json();
 
-const prefix = `sumo_st_${Date.now()}`;
+const prefix = `seethrough_${Date.now()}`;
 const prompt = {
   '1': { class_type: 'LoadImage', inputs: { image: up.name } },
-  '2': { class_type: 'SeeThrough_LoadLayerDiffModel', inputs: { model: 'layerdifforg/seethroughv0.0.2_layerdiff3d', vae_ckpt: '', unet_ckpt: '', quant_mode: 'none', cache_tag_embeds: true, group_offload: true, auto_download: false } },
-  '3': { class_type: 'SeeThrough_LoadDepthModel', inputs: { model: '24yearsold/seethroughv0.0.1_marigold', quant_mode: 'none', cache_tag_embeds: true, group_offload: true, auto_download: false } },
+  '2': { class_type: 'SeeThrough_LoadLayerDiffModel', inputs: { model: 'layerdifforg/seethroughv0.0.2_layerdiff3d', vae_ckpt: '', unet_ckpt: '', quant_mode: 'none', cache_tag_embeds: true, group_offload: true, auto_download: AUTO_DOWNLOAD } },
+  '3': { class_type: 'SeeThrough_LoadDepthModel', inputs: { model: '24yearsold/seethroughv0.0.1_marigold', quant_mode: 'none', cache_tag_embeds: true, group_offload: true, auto_download: AUTO_DOWNLOAD } },
   '4': { class_type: 'SeeThrough_GenerateLayers', inputs: { image: ['1', 0], layerdiff_model: ['2', 0], seed, resolution: res, num_inference_steps: 30 } },
   '5': { class_type: 'SeeThrough_GenerateDepth', inputs: { layers: ['4', 0], depth_model: ['3', 0], seed, resolution_depth: -1 } },
   '6': { class_type: 'SeeThrough_PostProcess', inputs: { layers_depth: ['5', 0], tblr_split: true, use_lama: true } },
