@@ -1,10 +1,10 @@
-# Live2D 桌宠
+# InkPet 墨宠
 
 Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠标，透明的地方照常点得到后面的窗口。角色会眨眼、呼吸、跟着鼠标看，拖起来身体、头发和尾巴跟着甩。它还能念台词，语音有三种任选。改完 PSD 一保存，几秒后桌面上的角色就换成新生成的模型。
 
 自带一个角色：**苏墨**（墨龙执事）。
 
-> **English summary.** A Live2D desktop pet for Windows, built with Electron.
+> **English summary.** **InkPet** — a Live2D desktop pet for Windows, built with Electron.
 > - The window is transparent and stays on top. Only the character catches the mouse; clicks pass through everything else.
 > - It can speak through Windows TTS, Alibaba Cloud Qwen TTS, or your own TTS server.
 > - Other programs can control it through a small local HTTP API.
@@ -91,7 +91,7 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 | `Ctrl+Alt+U` | 停下正在念的话 |
 
 - **鼠标穿透**打开后，整个桌宠都不挡鼠标，连角色本身也点不到。要关掉的话，点托盘图标打开菜单。
-- 设置、陪伴天数、日志都放在用户数据目录 `%APPDATA%\live2d-desktop-pet\`。控制中心「系统」页能打开这个目录，里面有：
+- 设置、陪伴天数、日志都放在用户数据目录 `%APPDATA%\inkpet\`。控制中心「系统」页能打开这个目录，里面有：
   - `config.json`：设置。
   - `stats.json`：陪伴天数、被摸次数。
   - `main.log`、`renderer.log`：日志。
@@ -117,7 +117,7 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 桌宠在 `127.0.0.1:18932` 上开了一个小接口，给脚本和插件用。每个请求都要带令牌，令牌可以在控制中心「系统」页复制；浏览器里的网页发来的请求一律拒绝。
 
 ```powershell
-$h = @{ Authorization = "Bearer " + (Get-Content "$env:APPDATA\live2d-desktop-pet\api-token.txt").Trim() }
+$h = @{ Authorization = "Bearer " + (Get-Content "$env:APPDATA\inkpet\api-token.txt").Trim() }
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -ContentType "application/json; charset=utf-8" -Body '{"text":"主上，该休息了。"}'
 ```
 
@@ -136,7 +136,7 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -Cont
 
 1. 准备模型：用 PSD2Live 生成的最省事；别的工具做的 Live2D 模型也能放。
 2. 写一份角色档案：
-   - 放进用户数据目录的 `characters/`（`%APPDATA%\live2d-desktop-pet\characters\`）。
+   - 放进用户数据目录的 `characters/`（`%APPDATA%\inkpet\characters\`）。
    - 档案里的相对路径按档案所在的目录算。
    - id 和自带角色一样时，你的那份优先。
 3. 重新启动桌宠，在右键菜单或控制中心「角色」页选它。

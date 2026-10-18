@@ -3,7 +3,7 @@
 每个角色一份 JSON：`characters/<id>.json`。桌宠启动时从两个地方读：
 
 1. 程序目录的 `characters/`：随程序带的，比如苏墨。档案里的相对路径按**程序目录**算。
-2. 用户数据目录的 `characters/`，也就是 `%APPDATA%\live2d-desktop-pet\characters\`：你自己加的。档案里的相对路径按**档案所在的目录**算。和程序目录里同 id 的档案，以这里的为准。
+2. 用户数据目录的 `characters/`，也就是 `%APPDATA%\inkpet\characters\`：你自己加的。档案里的相对路径按**档案所在的目录**算。和程序目录里同 id 的档案，以这里的为准。
 
 改了档案要重新启动桌宠才生效。`order` 最小的角色是默认角色；在右键菜单或控制中心「角色」页可以换别的。
 
@@ -17,7 +17,7 @@
 }
 ```
 
-把它存成 `%APPDATA%\live2d-desktop-pet\characters\mychar.json`，模型放在同一个目录下的 `mychar\` 里，就能用了。没写 `rig` 时，按 PSD2Live 生成的模型的部件名来驱动；别的工具做的模型，要在 `rig` 里写上自己的部件名，见下面的「rig」一节。
+把它存成 `%APPDATA%\inkpet\characters\mychar.json`，模型放在同一个目录下的 `mychar\` 里，就能用了。没写 `rig` 时，按 PSD2Live 生成的模型的部件名来驱动；别的工具做的模型，要在 `rig` 里写上自己的部件名，见下面的「rig」一节。
 
 ## 字段
 

@@ -15,7 +15,7 @@ Authorization: Bearer <令牌>
 X-Pet-Token: <令牌>
 ```
 
-- 令牌在用户数据目录的 `api-token.txt` 里（`%APPDATA%\live2d-desktop-pet\api-token.txt`）。第一次启动时随机生成，以后不变。
+- 令牌在用户数据目录的 `api-token.txt` 里（`%APPDATA%\inkpet\api-token.txt`）。第一次启动时随机生成，以后不变。
 - 在「系统」页换新令牌后，旧的马上失效。
 - 带 `Origin` 请求头的请求一律拒绝（403）。浏览器里的网页发请求都会带这个头，这样随便打开的网页就没法指挥桌宠。
 - 请求体是 JSON，最大 16 KB；回复都是 JSON。
@@ -117,7 +117,7 @@ X-Pet-Token: <令牌>
 PowerShell。`-ContentType` 里一定要写 `charset=utf-8`，不写的话，Windows PowerShell 5.1 会把中文变成问号：
 
 ```powershell
-$token = (Get-Content "$env:APPDATA\live2d-desktop-pet\api-token.txt").Trim()
+$token = (Get-Content "$env:APPDATA\inkpet\api-token.txt").Trim()
 $h = @{ Authorization = "Bearer $token" }
 Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -ContentType "application/json; charset=utf-8" -Body '{"text":"主上，该休息了。"}'
 Invoke-RestMethod -Uri http://127.0.0.1:18932/state -Headers $h
@@ -130,7 +130,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-const token = fs.readFileSync(path.join(process.env.APPDATA || os.homedir(), 'live2d-desktop-pet', 'api-token.txt'), 'utf8').trim();
+const token = fs.readFileSync(path.join(process.env.APPDATA || os.homedir(), 'inkpet', 'api-token.txt'), 'utf8').trim();
 const pet = (p, body) => fetch('http://127.0.0.1:18932' + p, {
   method: body ? 'POST' : 'GET',
   headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -146,7 +146,7 @@ Python：
 ```python
 import json, os, urllib.request
 
-token = open(os.path.join(os.environ['APPDATA'], 'live2d-desktop-pet', 'api-token.txt'), encoding='utf-8').read().strip()
+token = open(os.path.join(os.environ['APPDATA'], 'inkpet', 'api-token.txt'), encoding='utf-8').read().strip()
 req = urllib.request.Request('http://127.0.0.1:18932/say', method='POST',
                              data=json.dumps({'text': '主上，该休息了。'}).encode('utf-8'),
                              headers={'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json'})

@@ -1,5 +1,5 @@
 {
-  "name": "live2d-desktop-pet",
+  "name": "inkpet",
   "version": "0.1.0",
   "private": true,
   "description": "Windows 上的 Live2D 桌宠：透明置顶、只认角色身上的点击和拖动、会说话、改 PSD 实时换模型",
