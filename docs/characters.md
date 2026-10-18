@@ -76,7 +76,7 @@
 
 ### tail
 
-有尾巴的角色才写。模型里要有对应的参数，用我们改过的 PSD2Live 生成的模型会带 `ParamTailWag`。
+有尾巴的角色才写。模型里要有对应的参数：用我们改过的 PSD2Live 生成的模型会带 `ParamTailWag`。官方版生成的没有这个参数，这段写了也不会出错，只是尾巴不会单独摆。
 
 ```json
 "tail": { "param": "ParamTailWag", "idleAmp": 0.18, "idlePeriod": 4.2, "burstAmp": 0.9, "burstFreq": 2.2, "burstDecay": 1.5, "dragGain": 1.0, "sayAmp": 0.45 }

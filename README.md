@@ -4,6 +4,11 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 
 自带一个角色：**苏墨**（墨龙执事）。
 
+<p align="center">
+  <img src="docs/images/demo.webp" alt="拖动苏墨：身体、头发、尾巴跟着甩；点一下抖耳朵" width="300">
+  <img src="docs/images/hero.jpg" alt="苏墨在桌面上，点一下冒出气泡" width="520">
+</p>
+
 > **English summary.** **InkPet** — a Live2D desktop pet for Windows, built with Electron.
 > - The window is transparent and stays on top. Only the character catches the mouse; clicks pass through everything else.
 > - It can speak through Windows TTS, Alibaba Cloud Qwen TTS, or your own TTS server.
@@ -19,7 +24,7 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
   - 平时会眨眼、呼吸、左右轻晃，头和眼睛跟着鼠标转。
   - 拖动时，身体、四肢、头发、尾巴带着弹簧的惯性甩起来。
   - 点一下会点头、抖耳朵、甩尾巴，并冒一个气泡（陪伴天数、被摸次数等）。
-  - 右键菜单里还能让它做动作。
+  - 别的程序可以经本机接口让它做动作：点头、摇头、打哈欠、开心跳……
 - **换装**：衣服和配件可以单独开关。苏墨能开关的是长袖、靴子、龙角、尾巴。
 - **说话**：
   - 语音可以用 Windows 自带语音、阿里云千问语音合成，或者你自己的语音服务。
@@ -39,7 +44,7 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 - Windows 10 或 11（64 位）。
 - [Node.js](https://nodejs.org/) 22 或更新。
 - Live2D Cubism SDK for Web：自己下载，见下面第 3 步。
-- 可选，只有「从 PSD 生成模型」时才用到：Python 3.10+、Java 21+ 和 PSD2Live。详见[从 PSD 生成模型](#从-psd-生成模型)。
+- 可选，只有「从 PSD 生成模型」时才用到：Python 3.10+ 和 PSD2Live（官方免安装包自带 Java）。详见[从 PSD 生成模型](#从-psd-生成模型)。
 
 ## 快速开始
 
@@ -87,10 +92,12 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 | --- | --- |
 | 左键点角色 | 点头、抖耳或甩尾，冒气泡；点中头和尾巴的反应不一样 |
 | 左键按住拖 | 挪位置；松手的地方会记住 |
-| 右键角色 / 点托盘图标 | 菜单：控制中心、主题、鼠标穿透、换角色、说一句 / 停下、退出 |
+| 右键角色 / 点托盘图标 | 菜单：打开控制中心、换角色（有好几个角色时）、说一句 / 停下、不影响鼠标、退出 |
 | `Ctrl+Alt+U` | 停下正在念的话 |
 
-- **鼠标穿透**打开后，整个桌宠都不挡鼠标，连角色本身也点不到。要关掉的话，点托盘图标打开菜单。
+<img src="docs/images/menu.jpg" alt="右键菜单" width="520">
+
+- **不影响鼠标**打开后，整个桌宠都不挡鼠标，连角色本身也点不到。要关掉的话，点托盘图标打开菜单。
 - 设置、陪伴天数、日志都放在用户数据目录 `%APPDATA%\inkpet\`。控制中心「系统」页能打开这个目录，里面有：
   - `config.json`：设置。
   - `stats.json`：陪伴天数、被摸次数。
@@ -160,34 +167,34 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -Cont
 要装的东西：
 
 - **Python 3.10+**，再装几个包：`pip install psd-tools numpy pillow`。
-- **Java 21 或更新**（例如 [Eclipse Temurin](https://adoptium.net/)）。设了 `JAVA_HOME`，或者 `java` 在 PATH 里就行。
-- **PSD2Live**：一个开源的 PSD → Live2D 模型生成工具（GPL-3.0）。
-  - 把 `PSD2Live.jar` 放到 `tools/psd2live/`。
+- **PSD2Live**：一个开源的 PSD → Live2D 模型生成工具（GPL-3.0），两种任选：
+  - **官方版**：从 [Releases 页](https://github.com/tsunehimatoi/psd2live/releases)下载 `windows-x64-portable.zip`，解压到 `tools/psd2live/`，让 `PSD2Live.exe` 正好在这个目录下。自带 Java，不用另装。尾巴不会单独摆。
+  - **我们改过的版本**：自己编出 `PSD2Live.jar`，放进 `tools/psd2live/`，要 Java 21（设了 `JAVA_HOME` 或者 `java` 在 PATH 里）。尾巴会摆。
   - 推荐用我们改过的版本，它加了尾巴物理和头发网格兜底，源码和 jar 见 [THIRD_PARTY.md](THIRD_PARTY.md#psd2live)。
   - 用上游版本也能生成，只是尾巴没有物理。
 
 Python、Java、PSD2Live 的路径也可以在 `config.json` 的 `modelBuild` 里写死：
 
 ```json
-"modelBuild": { "python": "C:\\Python312\\python.exe", "java": "C:\\Java\\jdk-21\\bin\\java.exe", "jar": "D:\\tools\\PSD2Live.jar" }
+"modelBuild": { "python": "C:\\Python312\\python.exe", "jar": "D:\\tools\\PSD2Live\\PSD2Live.exe" }
 ```
 
 `pipeline/` 里是做苏墨时拆图层用的脚本：经 ComfyUI 的 See-through 插件把一张立绘拆成分层，再整理成 PSD。用法写在每个脚本的开头，这几个脚本另外要 `pip install scipy`。
 
-## 制作教程（写作中）
+## 制作教程
 
-教程以做苏墨的真实过程为例，从一张立绘讲到桌面上会动的桌宠：
+[docs/tutorial](docs/tutorial/README.md)：以做苏墨的真实过程为例，从一张立绘讲到桌面上会动的桌宠。
 
-0. 这是什么、要准备什么
-1. 准备角色立绘
-2. 拆图层：ComfyUI + See-through
-3. 在 Photoshop / Krita 里修图层，以及图层命名的规则
-4. 用 PSD2Live 生成 Live2D 模型
-5. 写角色档案，放进桌宠
-6. 边画边看：存 PSD 自动重新生成
-7. 调手感：眨眼、呼吸、摆动、点击和拖动的反应
-8. 语音和本机接口
-9. 常见问题
+0. [开始之前](docs/tutorial/00-开始之前.md)：整条流程、要装的软件
+1. [准备立绘](docs/tutorial/01-准备立绘.md)
+2. [AI 拆图层](docs/tutorial/02-AI拆图层.md)：ComfyUI + See-through
+3. [修图层、起名字](docs/tutorial/03-修图层.md)：补画被挡住的地方，图层命名的规则
+4. [生成 Live2D 模型](docs/tutorial/04-生成模型.md)：PSD2Live，离屏预览检查
+5. [放进桌宠](docs/tutorial/05-放进桌宠.md)：写角色档案
+6. [边画边看](docs/tutorial/06-边画边看.md)：存 PSD 自动重新生成
+7. [调手感](docs/tutorial/07-调手感.md)：眨眼、呼吸、摆动、点击和拖动的反应
+8. [语音和本机接口](docs/tutorial/08-语音和本机接口.md)
+9. [常见问题](docs/tutorial/09-常见问题.md)
 
 ## 目录
 

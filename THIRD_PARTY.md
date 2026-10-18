@@ -24,7 +24,8 @@
 - 我们改过的版本：（发布时补上地址），同样是 GPL-3.0，附源码。
   - 加了尾巴物理：生成 `ParamTail` 和 `ParamTailWag`。
   - 加了头发网格兜底。
-- 桌宠只是另起一个进程运行 `java -jar PSD2Live.jar`，两者是分开的程序。PSD2Live.jar 不随本仓库分发。
+- 桌宠只是另起一个进程运行 PSD2Live（官方版的 `PSD2Live.exe`，或者 `java -jar PSD2Live.jar`），两者是分开的程序。PSD2Live 不随本仓库分发。
+- 官方 3.x 版（<https://github.com/tsunehimatoi/psd2live/releases>）可以直接用；我们改过的版本基于 0.1。
 - PSD2Live 和 umamo 是按 Live2D 文件格式自己实现的第三方工具，和 Live2D Inc. 没有关系。
 
 ### See-through
