@@ -1,0 +1,60 @@
+{
+	"Version": 3,
+	"FileReferences": {
+		"Moc": "sumo.moc3",
+		"Textures": [
+			"sumo.4096/texture_00.png"
+		],
+		"Physics": "sumo.physics3.json",
+		"DisplayInfo": "sumo.cdi3.json",
+		"Motions": {
+			"Idle": [
+				{
+					"File": "sumo.idle.motion3.json"
+				}
+			],
+			"Blink": [
+				{
+					"File": "sumo.blink.motion3.json"
+				}
+			],
+			"Nod": [
+				{
+					"File": "sumo.nod.motion3.json"
+				}
+			],
+			"Shake": [
+				{
+					"File": "sumo.shake.motion3.json"
+				}
+			]
+		}
+	},
+	"Groups": [
+		{
+			"Target": "Parameter",
+			"Name": "EyeBlink",
+			"Ids": [
+				"ParamEyeLOpen",
+				"ParamEyeROpen"
+			]
+		},
+		{
+			"Target": "Parameter",
+			"Name": "LipSync",
+			"Ids": [
+				"ParamMouthOpenY"
+			]
+		}
+	],
+	"HitAreas": [
+		{
+			"Name": "Head",
+			"Id": "ArtMeshFace"
+		},
+		{
+			"Name": "Body",
+			"Id": "ArtMeshTopwear"
+		}
+	]
+}

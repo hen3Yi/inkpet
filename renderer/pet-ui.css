@@ -1,0 +1,174 @@
+/* ============================================================
+   桌宠 · 宿主主窗样式
+   —— 只有两块：角色画布 / 气泡三态
+   —— 主题 = 3 质感 × 5 颜色，class 组合 + CSS 变量（尺寸布局共用一份规则）
+        质感：html.m-glass / m-acrylic / m-flat
+        颜色：html.c-sakura / c-celadon / c-midnight / c-amber / c-ink
+   —— 窗口是穿透窗：本页没有可点元素（命中只认角色画出来的像素，见 pet.js 的命中轮廓）
+   ============================================================ */
+
+/* ---------- 颜色 5 套（acc = 暗色玻璃纯色；accD = 浅色/实色压深一档） ---------- */
+.c-sakura  { --acc:#ff5aa8; --acc2:#c58ae0; --accD:#d63384; --line:#ffb3d9; --lineD:#e07fb0; }
+.c-celadon { --acc:#5fc9b6; --acc2:#7fb3d5; --accD:#2f9d8a; --line:#a8e0da; --lineD:#7fc9bd; }
+.c-midnight{ --acc:#6ea8ff; --acc2:#9b7be8; --accD:#3d7fe0; --line:#a9bcf7; --lineD:#8aa8e8; }
+.c-amber   { --acc:#f0a35e; --acc2:#e08a6b; --accD:#c9793a; --line:#f0cfa0; --lineD:#dcaf78; }
+/* 墨朱（2026-10-17 苏墨默认）：墨黑底 + 朱红 */
+.c-ink     { --acc:#e5533f; --acc2:#a8343f; --accD:#c0392b; --line:#f0a59b; --lineD:#d77a6f; }
+
+/* ---------- 质感 1：暗色玻璃（深色半透明 + blur12 + 柔光描边 + 柔和阴影） ---------- */
+.m-glass{
+  --accX:var(--acc); --lineX:var(--line);
+  --surf:linear-gradient(180deg,rgba(58,30,46,.96),rgba(34,16,26,.96));   /* 兜底＝樱粉，按色相在下面 4 条里给 */
+  --surfSolid:rgba(34,16,26,.94);
+  --blur:blur(12px);
+  --bd:var(--lineX);
+  --sh:0 14px 34px rgba(0,0,0,.5);
+  --r:16px; --rCtl:10px;
+  --ink:#f5e9f2; --dim:#9d90ad;
+  --menuHover:rgba(255,255,255,.10);
+  --sep:rgba(255,255,255,.10);
+  --ring:rgba(255,255,255,.25);
+  --bubbleBg:linear-gradient(180deg,rgba(255,255,255,.97),rgba(255,238,246,.97));
+  --bubbleBd:#ff8ac4; --bubbleInk:#4a1c33; --bubbleDim:#a1738c;
+}
+.m-glass.c-sakura  { --surf:linear-gradient(180deg,rgba(58,30,46,.96),rgba(34,16,26,.96)); --surfSolid:rgba(34,16,26,.94); }
+.m-glass.c-celadon { --surf:linear-gradient(180deg,rgba(20,46,44,.96),rgba(10,26,26,.96)); --surfSolid:rgba(10,26,26,.94); }
+.m-glass.c-midnight{ --surf:linear-gradient(180deg,rgba(22,30,54,.96),rgba(12,16,34,.96)); --surfSolid:rgba(12,16,34,.94); }
+.m-glass.c-amber   { --surf:linear-gradient(180deg,rgba(50,34,22,.96),rgba(28,18,10,.96)); --surfSolid:rgba(28,18,10,.94); }
+.m-glass.c-ink     { --surf:linear-gradient(180deg,rgba(34,26,28,.96),rgba(16,12,13,.96)); --surfSolid:rgba(16,12,13,.94);
+                     --bubbleBg:linear-gradient(180deg,rgba(255,255,255,.97),rgba(250,241,239,.97));
+                     --bubbleBd:#d4513f; --bubbleInk:#2a1517; --bubbleDim:#8c5a55; }
+
+/* ---------- 质感 2：浅色磨砂（白雾玻璃 + blur18 + 浅灰阴影 + 无发光） ---------- */
+.m-acrylic{
+  --accX:var(--accD); --lineX:var(--lineD);
+  --surf:linear-gradient(180deg,rgba(255,255,255,.86),rgba(246,248,252,.9));
+  --surfSolid:rgba(255,255,255,.94);
+  --blur:blur(18px);
+  --bd:#e3e8ef;
+  --sh:0 8px 24px rgba(31,45,61,.14);
+  --r:16px; --rCtl:10px;
+  --ink:#2b3445; --dim:#7c8aa0;
+  --menuHover:rgba(0,0,0,.05);
+  --sep:#e8edf3;
+  --ring:#cfd8e3;
+  --bubbleBg:linear-gradient(180deg,rgba(255,255,255,.96),rgba(246,248,252,.96));
+  --bubbleBd:var(--accD); --bubbleInk:#2b3445; --bubbleDim:#7c8aa0;
+}
+
+/* ---------- 质感 3：实色纯平（不透明深实底 / 无 blur / 无光晕 / 无投影 / 1px 实描边 / 圆角 10） ---------- */
+.m-flat{
+  --accX:var(--acc); --lineX:var(--acc);
+  --surf:#4a2b3c; --surfSolid:#4a2b3c;
+  --blur:none; --bd:var(--acc); --sh:none;
+  --r:10px; --rCtl:6px;
+  --ink:#f4f6f9; --dim:rgba(244,246,249,.62);
+  --menuHover:rgba(255,255,255,.10);
+  --sep:rgba(255,255,255,.14);
+  --ring:rgba(255,255,255,.35);
+  --bubbleBg:#4a2b3c; --bubbleBd:var(--acc); --bubbleInk:#f4f6f9; --bubbleDim:rgba(244,246,249,.62);
+}
+.m-flat.c-sakura  { --surf:#4a2b3c; --surfSolid:#4a2b3c; --bubbleBg:#4a2b3c; }
+.m-flat.c-celadon { --surf:#1f3d3a; --surfSolid:#1f3d3a; --bubbleBg:#1f3d3a; }
+.m-flat.c-midnight{ --surf:#22304d; --surfSolid:#22304d; --bubbleBg:#22304d; }
+.m-flat.c-amber   { --surf:#45301f; --surfSolid:#45301f; --bubbleBg:#45301f; }
+.m-flat.c-ink     { --surf:#2b2123; --surfSolid:#2b2123; --bubbleBg:#2b2123; }
+
+/* ============================================================
+   基础：整窗透明、无滚动、不选中（桌宠惯例）
+   ============================================================ */
+html, body {
+  margin: 0; padding: 0; background: transparent; overflow: hidden;
+  -webkit-user-select: none; user-select: none;
+  font-family: "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+[hidden] { display: none !important; }
+button { font-family: inherit; cursor: pointer; border: 0; background: transparent; color: inherit; }
+button:focus-visible { outline: 2px solid var(--accX); outline-offset: 2px; }
+
+/* ---------- 角色两层：模型画布 + 特效（爱心眼）在上 ---------- */
+#stage { display: block; position: relative; z-index: 2; }
+#fx    { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 3; }
+/* pet.js 自绘的 canvas 尺寸交给它自己写；这里只保证画布不被 CSS 拉伸 */
+#stage, #fx { box-sizing: border-box; }
+
+/* ============================================================
+   气泡三态（契约第五节）
+   ① 平时：opacity 0（不占交互）
+   ② 点一下角色：.show → 数据行 + 台词行
+   ③ 说话中：pet.js 把数据行 style.display='none'，只留台词行；说完移除 .show
+   ⚠️ 数据行/台词行的 display 由 pet.js 直接写（'none' / 'block' / ''），
+      所以这里不给 #bubbleData / #bubbleText 写 display 或 !important —— 否则会打架。
+   ============================================================ */
+#bubble {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%) scale(.94);
+  /* ★ 宽度由 main.js 的 bubble.wPct（60–100 窗宽%）控制；高度**自适应**：
+     内容撑高 → pet.js 测高上报 pet:bubble-height → 主进程把窗口一起撑高，不再靠截断塞进固定高度 */
+  width: calc(var(--bubble-w-pct, 96) * 1%);
+  max-width: calc(100% - 8px);            /* 硬上限：左右各留 ≥4px */
+  height: auto;                           /* ★ 内容多就长 */
+  min-height: 40px;
+  max-height: 60vh;                       /* 上限＝窗高的 60% */
+  box-sizing: border-box; overflow: hidden;
+  padding: 3px 9px 4px; border-radius: 12px; z-index: 4;
+  pointer-events: none; text-align: center;
+  display: flex; flex-direction: column; justify-content: center;
+  background: var(--bubbleBg);
+  border: 2px solid var(--bubbleBd);
+  box-shadow: 0 4px 12px rgba(0,0,0,.26);
+  opacity: 0; transition: opacity .18s ease, transform .18s ease;
+}
+#bubble.show { opacity: 1; transform: translateX(-50%) scale(1); }
+/* 小三角（内嵌底边：overflow:hidden 下外凸会被裁掉） */
+#bubble::after {
+  content: ""; position: absolute; left: 50%; bottom: 0; margin-left: -6px;
+  width: 0; height: 0;
+  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  border-bottom: 5px solid var(--bubbleBd);
+  opacity: .85;
+}
+/* 数据区：每项＝**纵向两行小格子**
+     [ 标签 ]   ← 小字 11px、次要色
+     [ 数值 ]   ← 大字 15px、粗体、主色深
+   格子之间并排；宽度不够由 flex-wrap 折行；文字不截断（允许换行 + 气泡高度自适应）。
+   项数截断与短标签由 pet.js 按窗宽决定（<300 → short 短标签且最多 2 项 / 300–500 → 4 项 / ≥500 全显示）。 */
+#bubbleData {
+  flex: 0 0 auto; min-width: 0;
+  display: flex; flex-wrap: wrap; overflow: hidden;
+  justify-content: center; align-items: flex-start; gap: 3px 12px;
+  color: var(--bubbleInk); letter-spacing: .01em;
+}
+#bubbleData span.cell {
+  flex: 0 1 auto; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+}
+#bubbleData .cell .lbl {
+  font-size: 11px; font-weight: 500; color: var(--bubbleDim); letter-spacing: 0;
+  white-space: normal; overflow-wrap: anywhere; text-align: center;
+}
+#bubbleData .cell .val {
+  font-size: 15px; font-weight: 700; color: var(--bubbleInk);
+  font-variant-numeric: tabular-nums; line-height: 1.15;
+  white-space: normal; overflow-wrap: anywhere; text-align: center;
+}
+/* level==='small' 的项：整格缩一档（标签 10.5 / 数值 12） */
+#bubbleData span.cell.sm .lbl { font-size: 10.5px; }
+#bubbleData span.cell.sm .val { font-size: 12px; font-weight: 600; opacity: .88; }
+#bubbleData .more { flex: 0 0 auto; align-self: center; font-style: normal; font-size: 10.5px; font-weight: 600; opacity: .75; }
+/* 台词行：★ 同样允许折行、文字显示完（不再单行省略号） */
+#bubbleText {
+  flex: 0 0 auto; min-width: 0;
+  white-space: normal; overflow-wrap: anywhere;
+  font-size: 10.5px; line-height: 1.22; margin-top: 2px;
+  color: var(--bubbleDim);
+}
+
+/* ============================================================
+   右键菜单不在这里：宿主窗很小，自绘菜单必然遮住角色、位置也被框死 ⇒
+   由主进程的独立菜单小窗从鼠标位置弹出（renderer/menu.html）。
+   ============================================================ */
+
+/* ★ 命中区提醒（给后来改代码的人）：
+   本页没有任何可点元素 ⇒ 主进程只按角色的命中轮廓判「鼠标在不在角色上」。
+   若日后往宿主窗加可点件，要让主进程也知道它的矩形（并进 cursorTick 的命中判定），
+   否则穿透窗里「看得见、点不到」。 */

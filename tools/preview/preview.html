@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>html,body{margin:0;background:#fff;overflow:hidden} canvas{width:640px;height:640px}</style>
+</head>
+<body>
+<canvas id="c" width="1280" height="1280"></canvas>
+<script src="../../renderer/vendor/live2d/live2dcubismcore.min.js"></script>
+<script type="module">
+// Offscreen check for the pet's Live2D wrapper with a character profile (characters/<id>.json):
+// window.__step(st) feeds the same inputs the pet feeds (motion, pointer, mouth, cloth, extra params,
+// ear twitch), advances st.frames frames of st.dt ms, and returns hit-test results and/or a PNG.
+import { PetLive2D } from '../../renderer/vendor/live2d/pet-live2d.js';
+try {
+  const q = new URLSearchParams(location.search);
+  const ch = await (await fetch(q.get('c'))).json();
+  const root = new URL('../../', location.href);
+  // same rule as the pet: profiles in <project>/characters/ resolve paths from the project folder,
+  // the others from their own folder
+  const inApp = q.get('c').toLowerCase().startsWith(new URL('characters/', root).href.toLowerCase());
+  const base = inApp ? root : new URL('./', q.get('c'));
+  const canvas = document.getElementById('c');
+  const shaderPath = new URL('../../renderer/vendor/live2d/Shaders/WebGL/', location.href).href;
+  window.__log = [];
+  const inner = new PetLive2D(canvas, { shaderPath, rig: ch.rig || null, log: (s) => window.__log.push(String(s)) });
+  await inner.load(new URL(ch.model, base).href);
+  window.__step = (st) => {
+    if (st.motion) inner.setMotion(st.motion[0], st.motion[1], st.motion[2], st.motion[3]);
+    if (st.pointer) inner.setPointer(st.pointer[0], st.pointer[1]);
+    if (typeof st.eye === 'number') inner.setEyeOpen(st.eye);
+    if (st.mouth) inner.setMouth(st.mouth);
+    if (st.mouthOpen !== undefined) inner.setMouthOpen(st.mouthOpen);
+    if (st.cloth !== undefined) inner.setClothMask(st.cloth);
+    if (st.extra) for (const k in st.extra) inner.setExtra(k, st.extra[k]);
+    if (st.ear) inner.earTwitch();
+    if (typeof st.tilt === 'number') inner.setDragTilt(st.tilt);
+    if (typeof st.limbArm === 'number') inner.setLimbArm(st.limbArm);
+    const n = st.frames || 1, dt = st.dt || 16;
+    for (let i = 0; i < n; i++) inner.update(dt);
+    inner.draw();
+    const out = {};
+    if (st.hit) out.hit = st.hit.map((p) => [p[0], p[1], inner.hitPart(p[0], p[1])]);
+    if (st.shot) out.png = canvas.toDataURL('image/png');
+    return out;
+  };
+  window.__ready = true;
+} catch (e) {
+  window.__error = String(e && e.stack || e);
+}
+</script>
+</body>
+</html>

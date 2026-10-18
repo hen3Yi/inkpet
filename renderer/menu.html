@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="zh-CN" class="m-glass c-sakura">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: data: blob:; connect-src file: data: blob:; media-src data: blob:; font-src file: data:">
+<title>桌宠 · 菜单</title>
+<style>
+  /* ★ 右键菜单窗：独立小窗，从鼠标位置弹出、不占桌宠窗口 —— 所以不遮角色。
+     主题只跟「质感 + 颜色」两组 class 走，与宿主窗/控制中心同一套口径（尺寸布局只有一份）。 */
+  html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; user-select: none;
+    font-family: "Microsoft YaHei UI", "Microsoft YaHei", system-ui, sans-serif; }
+
+  /* ---- 质感 3 选 1 ---- */
+  html.m-glass  { --surf: linear-gradient(180deg, rgba(58,30,46,.97), rgba(34,16,26,.97));
+                  --ink: #f2eaf4; --dim: #b79fb2; --line: rgba(255,138,196,.42); --blur: blur(10px);
+                  --sh: 0 14px 34px rgba(0,0,0,.55); }
+  html.m-acrylic{ --surf: linear-gradient(180deg, rgba(255,255,255,.95), rgba(246,248,252,.97));
+                  --ink: #2b3445; --dim: #7c8aa0; --line: #e3e8ef; --blur: blur(14px);
+                  --sh: 0 10px 26px rgba(31,41,55,.18); }
+  html.m-flat   { --surf: #2a3346; --ink: #f4f6f9; --dim: #9aa7bd; --line: #3a4a63; --blur: none;
+                  --sh: none; }
+  html.m-flat.c-sakura  { --surf: #4a2b3c; }
+  html.m-flat.c-celadon { --surf: #1f3d3a; }
+  html.m-flat.c-midnight{ --surf: #22304d; }
+  html.m-flat.c-amber   { --surf: #45301f; }
+  html.m-flat.c-ink     { --surf: #2b2123; }
+  html.m-glass.c-ink    { --surf: linear-gradient(180deg, rgba(34,26,28,.97), rgba(16,12,13,.97)); --line: rgba(229,83,63,.42); }
+
+  /* ---- 颜色 5 选 1（只定色相） ---- */
+  html.c-sakura  { --acc: #ff5aa8; --acc2: #b06bd6; }
+  html.c-celadon { --acc: #5fc9b6; --acc2: #4f8ef7; }
+  html.c-midnight{ --acc: #6ea8ff; --acc2: #9b7bff; }
+  html.c-amber   { --acc: #f0a35e; --acc2: #e2698f; }
+  html.c-ink     { --acc: #e5533f; --acc2: #a8343f; }
+  html.m-acrylic.c-sakura  { --acc: #e8548f; }
+  html.m-acrylic.c-celadon { --acc: #3fae9b; }
+  html.m-acrylic.c-midnight{ --acc: #4a86e8; }
+  html.m-acrylic.c-amber   { --acc: #d98b3f; }
+  html.m-acrylic.c-ink     { --acc: #c0392b; }
+
+  #menu {
+    position: absolute; inset: 6px; box-sizing: border-box;
+    background: var(--surf); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 14px;
+    backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+    box-shadow: var(--sh); padding: 6px; display: flex; flex-direction: column; gap: 2px;
+  }
+  .mi { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px;
+    border-radius: 9px; font-size: 12.5px; cursor: default; white-space: nowrap; }
+  .mi .ic { width: 14px; text-align: center; color: var(--dim); font-size: 11px; }
+  .mi .lbl { flex: 1 1 auto; }
+  .mi .key { color: var(--dim); font-size: 11px; }
+  .mi:hover { background: color-mix(in srgb, var(--acc) 22%, transparent); }
+  .mi.on .ic { color: var(--acc); }
+  .sep { height: 1px; margin: 4px 6px; background: var(--line); }
+  /* ★ 角色一行（装了两个以上角色才显示）：实心 = 现在显示的那个 */
+  .mi.chars:hover { background: transparent; }
+  .chips { display: flex; gap: 4px; flex: 1 1 auto; justify-content: flex-end; }
+  .chip { font-size: 11px; line-height: 18px; padding: 0 7px; border-radius: 8px; border: 1px solid var(--line); color: var(--ink); cursor: default; }
+  .chip:hover { background: color-mix(in srgb, var(--acc) 22%, transparent); }
+  .chip.on { background: var(--acc); border-color: var(--acc); color: #fff; }
+  .chip.cur:not(.on) { border-color: var(--acc); color: var(--acc); }
+</style>
+</head>
+<body>
+<div id="menu" role="menu" aria-label="桌宠菜单">
+  <div class="mi chars" id="charRow"><span class="ic">◆</span><span class="lbl">角色</span><span class="chips" id="charChips"></span></div>
+  <div class="sep"></div>
+  <div class="mi" data-id="center"><span class="ic">◉</span><span class="lbl">打开面板</span><span class="key">Ctrl+,</span></div>
+  <div class="mi" data-id="say"><span class="ic">♪</span><span class="lbl">说一句</span><span class="key">S</span></div>
+  <div class="mi" data-id="through"><span class="ic">○</span><span class="lbl">不影响鼠标</span><span class="key">M</span></div>
+  <div class="sep"></div>
+  <div class="mi" data-id="quit"><span class="ic">✕</span><span class="lbl">退出</span><span class="key">Ctrl+Q</span></div>
+</div>
+<script src="menu.js"></script>
+</body>
+</html>

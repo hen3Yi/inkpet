@@ -1,0 +1,24 @@
+{
+  "name": "live2d-desktop-pet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Windows 上的 Live2D 桌宠：透明置顶、只认角色身上的点击和拖动、会说话、改 PSD 实时换模型",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "build:live2d": "node scripts/build-live2d.mjs",
+    "start": "electron .",
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "electron": "^44.4.1",
+    "esbuild": "^0.28.2"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "allowScripts": {
+    "esbuild": true
+  }
+}

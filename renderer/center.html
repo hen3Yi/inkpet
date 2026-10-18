@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="zh-CN" class="m-glass c-sakura">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: data: blob:; connect-src file: data: blob:; media-src data: blob:; font-src file: data:">
+<title>桌宠 · 控制中心</title>
+<style>
+  /* ============================================================
+     控制中心（真实窗口页面 · 620×700）
+       主题体系 = 3 质感 × 4 颜色 = 12 套：根节点 class 组合
+         m-glass | m-acrylic | m-flat   ×   c-sakura | c-celadon | c-midnight | c-amber
+       尺寸与布局只有一份，差异全部来自「质感变量」与「色相变量」。
+       主题组在「外观」页内；标题栏下方不常驻主题条。
+       主题状态一律经 center:init 取、center:theme 落盘（本页不自写文件）。
+     ============================================================ */
+  html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+
+  /* ---------- 颜色 4 套（acc=亮版；accD=浅色/实色压深一档） ---------- */
+  .c-sakura  { --acc:#ff5aa8; --acc2:#c58ae0; --accD:#d63384; --line:#ffb3d9; --lineD:#e07fb0; }
+  .c-celadon { --acc:#5fc9b6; --acc2:#7fb3d5; --accD:#2f9d8a; --line:#a8e0da; --lineD:#7fc9bd; }
+  .c-midnight{ --acc:#6ea8ff; --acc2:#9b7be8; --accD:#3d7fe0; --line:#a9bcf7; --lineD:#8aa8e8; }
+  .c-amber   { --acc:#f0a35e; --acc2:#e08a6b; --accD:#c9793a; --line:#f0cfa0; --lineD:#dcaf78; }
+  .c-ink     { --acc:#e5533f; --acc2:#a8343f; --accD:#c0392b; --line:#f0a59b; --lineD:#d77a6f; }
+
+  /* ---------- 质感 1：暗色玻璃 ---------- */
+  .m-glass {
+    --accX:var(--acc); --lineX:var(--line);
+    --surf:linear-gradient(180deg,rgba(58,30,46,.96),rgba(34,16,26,.96));   /* 兜底＝樱粉，按色相见下方 4 条组合 */
+    --surfSolid:rgba(34,16,26,.94);
+    --blur:blur(12px);
+    --bd:var(--lineX);
+    --sh:0 14px 34px rgba(0,0,0,.5);
+    --shSoft:0 3px 10px rgba(0,0,0,.35);
+    --r:20px; --rSm:11px; --rCtl:10px;
+    --ink:#f5e9f2; --dim:#9d90ad;
+    --rowBg:rgba(255,255,255,.045); --rowBd:rgba(255,255,255,.07);
+    --ctlBg:rgba(255,255,255,.07); --ctlBd:rgba(255,255,255,.16);
+    --sep:rgba(255,255,255,.10);
+    --soft:rgba(255,255,255,.09);
+    --menuHover:rgba(255,255,255,.10);
+    --ring:rgba(255,255,255,.25);
+    --trackBg:linear-gradient(90deg,var(--accX),var(--acc2));
+    --thumbBg:#fff; --onText:#20161f;
+    --onGlow:none;
+    --chatMe:rgba(255,255,255,.08);
+  }
+  /* glass 的底跟着色相走（保持 .96 alpha 与 180deg 方向，只换色相） */
+  .m-glass.c-sakura  { --surf:linear-gradient(180deg,rgba(58,30,46,.96),rgba(34,16,26,.96)); --surfSolid:rgba(34,16,26,.94); }
+  .m-glass.c-celadon { --surf:linear-gradient(180deg,rgba(20,46,44,.96),rgba(10,26,26,.96)); --surfSolid:rgba(10,26,26,.94); }
+  .m-glass.c-midnight{ --surf:linear-gradient(180deg,rgba(22,30,54,.96),rgba(12,16,34,.96)); --surfSolid:rgba(12,16,34,.94); }
+  .m-glass.c-amber   { --surf:linear-gradient(180deg,rgba(50,34,22,.96),rgba(28,18,10,.96)); --surfSolid:rgba(28,18,10,.94); }
+  .m-glass.c-ink     { --surf:linear-gradient(180deg,rgba(34,26,28,.96),rgba(16,12,13,.96)); --surfSolid:rgba(16,12,13,.94); }
+
+  /* ---------- 质感 2：浅色磨砂 ---------- */
+  .m-acrylic {
+    --accX:var(--accD); --lineX:var(--lineD);
+    --surf:linear-gradient(180deg,rgba(255,255,255,.86),rgba(246,248,252,.9));
+    --surfSolid:rgba(255,255,255,.94);
+    --blur:blur(18px);
+    --bd:#e3e8ef;
+    --sh:0 8px 24px rgba(31,45,61,.14);
+    --shSoft:0 2px 8px rgba(31,45,61,.10);
+    --r:20px; --rSm:11px; --rCtl:10px;
+    --ink:#2b3445; --dim:#7c8aa0;
+    --rowBg:rgba(255,255,255,.72); --rowBd:#e8edf3;
+    --ctlBg:#ffffff; --ctlBd:#dbe3ec;
+    --sep:#e8edf3;
+    --soft:rgba(0,0,0,.05);
+    --menuHover:rgba(0,0,0,.05);
+    --ring:#cfd8e3;
+    --trackBg:var(--accX);
+    --thumbBg:#fff; --onText:#fff;
+    --onGlow:none;
+    --chatMe:rgba(0,0,0,.05);
+  }
+
+  /* ---------- 质感 3：实色纯平 ---------- */
+  .m-flat {
+    --accX:var(--acc); --lineX:var(--acc);
+    --surf:#4a2b3c;              /* 兜底：真正深实底按色相见下方 4 条组合 */
+    --surfSolid:#4a2b3c;
+    --blur:none;
+    --bd:var(--acc);
+    --sh:none;
+    --shSoft:none;
+    --r:10px; --rSm:6px; --rCtl:6px;
+    --ink:#f4f6f9; --dim:rgba(244,246,249,.62);
+    --rowBg:rgba(255,255,255,.06); --rowBd:rgba(255,255,255,.14);
+    --ctlBg:rgba(255,255,255,.08); --ctlBd:rgba(255,255,255,.22);
+    --sep:rgba(255,255,255,.14);
+    --soft:rgba(255,255,255,.12);
+    --menuHover:rgba(255,255,255,.10);
+    --ring:rgba(255,255,255,.35);
+    --trackBg:var(--acc);
+    --thumbBg:var(--acc); --onText:#141a22;
+    --onGlow:none;
+    --chatMe:rgba(255,255,255,.10);
+  }
+  .m-flat.c-sakura  { --surf:#4a2b3c; --surfSolid:#4a2b3c; }
+  .m-flat.c-celadon { --surf:#1f3d3a; --surfSolid:#1f3d3a; }
+  .m-flat.c-midnight{ --surf:#22304d; --surfSolid:#22304d; }
+  .m-flat.c-amber   { --surf:#45301f; --surfSolid:#45301f; }
+  .m-flat.c-ink     { --surf:#2b2123; --surfSolid:#2b2123; }
+
+  button, input, select, textarea { font-family: inherit; }
+  button { cursor: pointer; }
+
+  /* ============================================================
+     窗体本体：填满 620×700 窗口（窗口透明，页面自己画玻璃）
+     ============================================================ */
+  #cc {
+    position: fixed; inset: 0; box-sizing: border-box;
+    display: flex; flex-direction: column; overflow: hidden;
+    background: var(--surf);
+    border: 1px solid var(--bd);
+    border-radius: var(--r);
+    box-shadow: var(--sh);
+    -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+    color: var(--ink);
+  }
+  #ccTop {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 12px 14px 10px;
+    border-bottom: 1px solid var(--sep); -webkit-app-region: drag;
+  }
+  #ccTop h1 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .05em; color: var(--accX); }
+  #ccTop .sub { font-size: 11px; color: var(--dim); margin-right: auto; }
+  #ccClose {
+    -webkit-app-region: no-drag;
+    width: 28px; height: 28px; border: 1px solid var(--ctlBd); border-radius: var(--rCtl);
+    background: var(--ctlBg); color: var(--ink); font-size: 15px; line-height: 1;
+  }
+  #ccClose:hover { background: var(--accX); border-color: var(--accX); color: var(--onText); }
+
+  #sbar { flex: 0 0 auto; padding: 9px 14px 10px; border-bottom: 1px solid var(--sep); }
+  #search {
+    width: 100%; box-sizing: border-box; height: 32px; padding: 0 12px; border-radius: var(--rCtl);
+    background: var(--ctlBg); border: 1px solid var(--ctlBd); color: var(--ink); font-size: 12px; outline: none;
+  }
+  #search::placeholder { color: var(--dim); }
+  #search:focus { border-color: var(--accX); }
+  #hint { font-size: 11px; color: var(--dim); margin-top: 6px; min-height: 14px; }
+
+  #ccBody { flex: 1 1 auto; display: flex; min-height: 0; }
+  #rail {
+    flex: 0 0 124px; padding: 9px; display: flex; flex-direction: column; gap: 4px;
+    border-right: 1px solid var(--sep);
+  }
+  .tab {
+    display: flex; align-items: center; gap: 7px; padding: 8px 9px; border: 0; border-radius: var(--rCtl);
+    background: transparent; color: var(--dim); font-size: 12px; text-align: left;
+  }
+  .tab .gl { width: 13px; height: 13px; border-radius: 4px; background: var(--ctlBg); border: 1px solid var(--ctlBd); flex: 0 0 13px; }
+  .tab:hover { background: var(--menuHover); }
+  .tab.on { background: var(--soft); color: var(--accX); font-weight: 600; box-shadow: inset 0 0 0 1px var(--lineX); }
+  .tab.on .gl { background: var(--accX); border-color: var(--accX); }
+  #pane { flex: 1; min-width: 0; padding: 12px 14px 16px; overflow: auto; scrollbar-width: thin; }
+  #pane::-webkit-scrollbar { width: 6px; }
+  #pane::-webkit-scrollbar-thumb { background: var(--ctlBd); border-radius: 3px; }
+  .page { display: none; }
+  .page.on { display: block; }
+  .hd { font-size: 11px; color: var(--dim); margin: 0 0 10px; line-height: 1.5; }
+  .secT { font-size: 11px; color: var(--accX); font-weight: 600; margin: 14px 0 7px; letter-spacing: .03em; }
+  .secT:first-child { margin-top: 0; }
+
+  /* ---------- 设置行 ---------- */
+  .row {
+    display: flex; align-items: center; gap: 9px; padding: 9px 10px; margin-bottom: 8px;
+    border-radius: var(--rCtl); background: var(--rowBg); border: 1px solid var(--rowBd);
+  }
+  .row.flash { background: var(--soft); border-color: var(--accX); }
+  .row .t { flex: 0 0 88px; font-size: 12px; color: var(--ink); }
+  .row .k { display: block; font-size: 11px; color: var(--dim); }
+  .row input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; min-width: 56px; height: 18px; background: transparent; padding: 0; }
+  .row input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: var(--trackBg); }
+  .row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 14px; height: 14px; margin-top: -4px;
+    border-radius: 50%; background: var(--thumbBg); border: 2px solid var(--accX);
+  }
+  .row .v { flex: 0 0 58px; text-align: right; font-size: 11px; color: var(--accX); font-variant-numeric: tabular-nums; user-select: none; cursor: text; }
+  .row .rb {
+    flex: 0 0 24px; width: 24px; height: 24px; border: 1px solid var(--lineX); border-radius: var(--rCtl);
+    background: var(--ctlBg); color: var(--accX); font-size: 12px; line-height: 1;
+  }
+  .row .rb:hover { background: var(--menuHover); }
+
+  /* ---------- 开关 / 下拉 / 按钮 ---------- */
+  .sw-on {
+    position: relative; flex: 0 0 36px; width: 36px; height: 20px; border-radius: 10px;
+    background: var(--ctlBg); border: 1px solid var(--ctlBd); padding: 0;
+  }
+  .sw-on::after {
+    content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--dim); transition: left .16s, background .16s;
+  }
+  .sw-on.on { background: var(--accX); border-color: var(--accX); }
+  .sw-on.on::after { left: 18px; background: #fff; }
+  .sel {
+    flex: 1; height: 28px; border-radius: var(--rCtl); background: var(--ctlBg);
+    border: 1px solid var(--ctlBd); color: var(--ink); font-size: 11.5px; padding: 0 6px;
+  }
+  .btn {
+    font-size: 11.5px; padding: 6px 11px; border-radius: var(--rCtl);
+    border: 1px solid var(--lineX); background: var(--ctlBg); color: var(--ink);
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--menuHover); }
+  .btn.pri { background: var(--accX); border-color: var(--accX); color: var(--onText); font-weight: 600; }
+  .btn.danger { border-color: var(--accX); color: var(--accX); }
+  .btn.armed { background: var(--accX); color: var(--onText); border-color: var(--accX); }
+  .btns { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  .btn:disabled:hover { background: transparent; }
+  details.mWarn summary { cursor: pointer; }
+  details.mWarn div { margin-top: 4px; max-height: 160px; overflow: auto; word-break: break-all; }
+  .chks { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .chk {
+    display: flex; align-items: center; gap: 7px; font-size: 11.5px; padding: 7px 9px; border-radius: var(--rCtl);
+    background: var(--rowBg); border: 1px solid var(--rowBd); color: var(--ink);
+  }
+  .chk input {
+    -webkit-appearance: none; appearance: none; width: 14px; height: 14px; border-radius: 4px;
+    border: 1.5px solid var(--lineX); background: var(--ctlBg); position: relative; margin: 0;
+  }
+  .chk input:checked { background: var(--accX); border-color: var(--accX); }
+  .chk input:checked::after { content: "✓"; position: absolute; left: 1px; top: -3px; font-size: 11px; color: var(--onText); }
+
+  /* ---------- 主题组（外观页第一组） ---------- */
+  #themeBox {
+    padding: 10px; border-radius: var(--rCtl); background: var(--rowBg);
+    border: 1px solid var(--rowBd); margin-bottom: 4px;
+  }
+  .barRow { display: flex; align-items: center; gap: 10px; }
+  .barRow + .barRow { margin-top: 10px; }
+  .barRow .lb { font-size: 11px; color: var(--dim); flex: 0 0 auto; }
+  .hint2 { font-size: 11px; color: var(--dim); white-space: nowrap; margin-left: 6px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  #mats { display: flex; gap: 6px; }
+  .chip {
+    font-size: 11px; padding: 5px 10px; border-radius: var(--rCtl);
+    border: 1px solid var(--lineX); background: var(--ctlBg); color: var(--ink); white-space: nowrap;
+  }
+  .chip:hover { background: var(--menuHover); }
+  .chip.on { background: var(--accX); border-color: var(--accX); color: var(--onText); font-weight: 600; }
+  #curTheme { margin-left: auto; font-size: 11px; color: var(--accX); font-weight: 600; white-space: nowrap; }
+  #swatches { display: flex; gap: 9px; }
+  .sw { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--ring); padding: 0; }
+  .sw[data-col="sakura"]  { background: linear-gradient(180deg,#ff5aa8,#c58ae0); }
+  .sw[data-col="celadon"] { background: linear-gradient(180deg,#5fc9b6,#7fb3d5); }
+  .sw[data-col="midnight"]{ background: linear-gradient(180deg,#6ea8ff,#9b7be8); }
+  .sw[data-col="amber"]   { background: linear-gradient(180deg,#f0a35e,#e08a6b); }
+  .sw[data-col="ink"]     { background: linear-gradient(180deg,#e5533f,#2a1d1f); }
+  .sw.on { border-color: var(--accX); box-shadow: 0 0 0 3px var(--soft); }
+
+  /* ---------- 文本输入（语音页的密钥 / 地址等） ---------- */
+  .txt {
+    flex: 1; min-width: 60px; height: 28px; box-sizing: border-box; padding: 0 8px; border-radius: var(--rCtl);
+    background: var(--ctlBg); border: 1px solid var(--ctlBd); color: var(--ink); font-size: 11.5px; outline: none;
+  }
+  .txt:focus { border-color: var(--accX); }
+  .engRow .ord { flex: 0 0 auto; display: flex; gap: 4px; }
+  .engRow .nm { flex: 1; font-size: 12px; color: var(--ink); }
+  .engRow .nt { display: block; font-size: 10.5px; color: var(--dim); margin-top: 2px; }
+
+  /* ---------- 工程页 ---------- */
+  .card { padding: 11px; border-radius: var(--rCtl); background: var(--rowBg); border: 1px solid var(--rowBd); margin-bottom: 9px; }
+  .card .ch { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+  .card .ch strong { font-size: 12.5px; color: var(--ink); }
+  .pill {
+    font-size: 11px; padding: 3px 9px; border-radius: 9px; background: var(--soft); color: var(--accX);
+    border: 1px solid var(--lineX); white-space: nowrap;
+  }
+  .pill.done { color: var(--ink); border-color: var(--rowBd); background: var(--rowBg); }
+  .bar { height: 7px; border-radius: 4px; background: var(--ctlBg); border: 1px solid var(--rowBd); overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--trackBg); }
+  .meta { font-size: 11px; color: var(--dim); margin-top: 6px; line-height: 1.5; }
+
+  /* ---------- 气泡编排器 ---------- */
+  #ordWrap { padding: 10px; border-radius: var(--rCtl); background: var(--rowBg); border: 1px solid var(--rowBd); margin-bottom: 10px; }
+  .ordRow {
+    display: flex; align-items: center; gap: 7px; padding: 6px 7px; border-radius: 9px;
+    background: var(--ctlBg); border: 1px solid var(--rowBd); margin-bottom: 6px;
+  }
+  .ordRow:last-child { margin-bottom: 0; }
+  .ordRow.sel { border-color: var(--accX); background: var(--soft); }
+  .ordRow .grip { flex: 0 0 12px; color: var(--dim); font-size: 11px; letter-spacing: -1px; cursor: grab; }
+  .ordRow input[type=checkbox] {
+    -webkit-appearance: none; appearance: none; flex: 0 0 14px; width: 14px; height: 14px;
+    border-radius: 4px; border: 1.5px solid var(--lineX); background: var(--surfSolid); position: relative; margin: 0;
+  }
+  .ordRow input[type=checkbox]:checked { background: var(--accX); border-color: var(--accX); }
+  .ordRow input[type=checkbox]:checked::after { content: "✓"; position: absolute; left: 1px; top: -3px; font-size: 11px; color: var(--onText); }
+  .ordRow .nm { flex: 1; font-size: 11.5px; color: var(--ink); }
+  .ordRow .sz {
+    font-size: 11px; padding: 3px 7px; border-radius: 7px; border: 1px solid var(--rowBd);
+    background: var(--surfSolid); color: var(--dim);
+  }
+  .ordRow .sz.big { color: var(--accX); border-color: var(--lineX); font-weight: 600; }
+  .ordRow .mv {
+    width: 20px; height: 20px; padding: 0; border-radius: 6px; border: 1px solid var(--rowBd);
+    background: var(--surfSolid); color: var(--ink); font-size: 11px; line-height: 1;
+  }
+  .ordRow .mv:hover { background: var(--menuHover); }
+  /* 实时预览：舞台＝按窗宽示意的框；气泡本体按 wPct%（宽）× hPx（高）实时渲染 */
+  #preview { padding: 10px; border-radius: var(--rCtl); background: var(--surfSolid); border: 1px solid var(--bd); box-shadow: var(--shSoft); position: sticky; top: 0; z-index: 5; margin-bottom: 10px; }
+  #preview .pvStage {
+    position: relative; margin: 0 auto; width: 200px; height: 216px;
+    border: 1px dashed var(--rowBd); border-radius: var(--rCtl); background: var(--rowBg); overflow: hidden;
+  }
+  #preview .pvBox {
+    position: absolute; left: 0; top: 0; box-sizing: border-box;
+    width: 96%; height: 78px; padding: 6px 9px; overflow: hidden;
+    background: var(--surfSolid); border: 1px solid var(--bd); border-radius: var(--rSm);
+    box-shadow: var(--shSoft);
+  }
+  /* 单行语义：数据行与台词行都是单行，超出用 …（与宿主侧口径一致） */
+  #preview .pData { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  #preview .pData b { color: var(--accX); }
+  #preview .pSay { font-size: 11px; color: var(--dim); margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #preview .pEmpty { font-size: 11px; color: var(--dim); text-align: center; }
+  #preview .pvNote { font-size: 11px; color: var(--dim); text-align: center; margin-top: 7px; }
+
+  .dangerBox { padding: 10px; border-radius: var(--rCtl); border: 1px dashed var(--accX); background: var(--soft); }
+  #toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(8px);
+    padding: 8px 14px; border-radius: var(--rSm); font-size: 12px;
+    background: var(--surfSolid); border: 1px solid var(--bd); box-shadow: var(--sh);
+    color: var(--ink); opacity: 0; pointer-events: none; transition: opacity .18s, transform .18s; z-index: 90;
+  }
+  #toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="cc">
+  <div id="ccTop">
+    <h1 id="ccTitle">桌宠 · 控制中心</h1>
+    <span class="sub">角色 / 外观 / 语音 / 设置 全收在这一处</span>
+    <button id="ccClose" title="关闭（Esc）">✕</button>
+  </div>
+
+  <div id="sbar">
+    <input id="search" type="search" placeholder="搜索设置项…（中文标签或英文 key，Ctrl+K 聚焦）">
+    <div id="hint"></div>
+  </div>
+
+  <div id="ccBody">
+    <div id="rail">
+      <button class="tab on" data-tab="role"><span class="gl"></span>角色</button>
+      <button class="tab" data-tab="look"><span class="gl"></span>外观</button>
+      <button class="tab" data-tab="bubble"><span class="gl"></span>气泡与数据</button>
+      <button class="tab" data-tab="voice"><span class="gl"></span>语音</button>
+      <button class="tab" data-tab="system"><span class="gl"></span>系统</button>
+    </div>
+
+    <div id="pane">
+
+      <!-- ============ 角色 ============ -->
+      <div class="page on" data-page="role">
+        <p class="hd">角色本体、尺寸与服装（改完即时生效）</p>
+        <div class="secT">显示谁</div>
+        <div class="row" data-search="角色 切换 形象 character">
+          <div id="charChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <p class="hd" id="charHint" style="margin-top:4px"></p>
+        <div id="roleSliders"></div>
+        <div class="secT">服装 / 配件（勾选＝显示）</div>
+        <div class="chks" id="clothBox"></div>
+        <div class="secT">特殊与动作</div>
+        <div class="row" data-search="爱心眼 heart 特效 眼睛">
+          <span class="t">爱心眼<span class="k">heart</span></span>
+          <span style="flex:1;font-size:11px;color:var(--dim)">眼睛里冒爱心</span>
+          <button class="sw-on" id="heartSw" title="切换"></button>
+        </div>
+        <div class="btns">
+          <button class="btn" id="reloadModel">重载模型</button>
+        </div>
+      </div>
+
+      <!-- ============ 外观 ============ -->
+      <div class="page" data-page="look">
+        <div class="secT">主题</div>
+        <div id="themeBox" data-search="主题 质感 颜色 theme 换肤 暗色玻璃 浅色磨砂 实色纯平">
+          <div class="barRow">
+            <span class="lb">质感</span>
+            <div id="mats">
+              <button class="chip" data-mat="glass">暗色玻璃</button>
+              <button class="chip" data-mat="acrylic">浅色磨砂</button>
+              <button class="chip" data-mat="flat">实色纯平</button>
+            </div>
+          </div>
+          <div class="barRow">
+            <span class="lb">颜色</span>
+            <div id="swatches">
+              <button class="sw" data-col="sakura" title="樱粉"></button>
+              <button class="sw" data-col="celadon" title="青瓷"></button>
+              <button class="sw" data-col="midnight" title="午夜蓝"></button>
+              <button class="sw" data-col="amber" title="暖砂金"></button>
+              <button class="sw" data-col="ink" title="墨朱"></button>
+            </div>
+            <span id="curTheme">当前：—</span>
+            <span class="hint2">｜一键切换 · 记住选择</span>
+          </div>
+        </div>
+        <div id="tuneGroups"></div>
+      </div>
+
+      <!-- ============ 气泡与数据 ============ -->
+      <div class="page" data-page="bubble">
+        <p class="hd">气泡里显示什么、按什么顺序、用大字还是小字 —— 下面改，预览立刻跟着变</p>
+
+        <div class="secT">显示行为</div>
+        <div class="row" data-search="点击角色才弹出 气泡总开关 bubble.on 平时不显示">
+          <span class="t">点击才弹<span class="k">bubble.on</span></span>
+          <span style="flex:1;font-size:11px;color:var(--dim)">平时不显示气泡；点一下角色才弹</span>
+          <button class="sw-on" id="bubbleOnSw" title="切换"></button>
+        </div>
+        <div class="row" data-search="说话时只显示台词 说完消失 bubble.say 台词">
+          <span class="t">说话只留台词<span class="k">bubble.say</span></span>
+          <span style="flex:1;font-size:11px;color:var(--dim)">说话时只显示台词行，说完气泡消失</span>
+          <button class="sw-on" id="bubbleSaySw" title="切换"></button>
+        </div>
+
+        <div class="secT">气泡尺寸</div>
+        <div id="sizeRows"></div>
+
+        <div class="secT">实时预览</div>
+        <div id="preview"></div>
+
+        <div class="secT">内容编排</div>
+        <div class="barRow" style="margin-bottom:8px">
+          <span class="lb">选中行</span>
+          <button class="btn" id="ordUp" title="上移选中行">↑ 上移</button>
+          <button class="btn" id="ordDown" title="下移选中行">↓ 下移</button>
+          <span class="hint2">勾选决定显示 · 大字/小字可切</span>
+        </div>
+        <div id="ordWrap" class="ordBlock" data-search="气泡内容编排器 数据行 大字 小字 order content bubble"></div>
+
+        <p class="hd" style="margin-top:9px">点桌宠窗里的角色 = 数据行（大字项）+ 台词（小字项）。</p>
+      </div>
+
+      <!-- ============ 语音 ============ -->
+      <div class="page" data-page="voice">
+        <p class="hd">桌宠会念台词，也会念插件经本机接口推来的话。合成服务按下面的顺序试，第一个出声的算数；念的时候按 Ctrl+Alt+U 停下。</p>
+        <div class="row" data-search="语音 出声 总开关 voice enabled">
+          <span class="t">出声<span class="k">voice</span></span>
+          <span style="flex:1;font-size:11px;color:var(--dim)" id="voiceState">—</span>
+          <button class="sw-on" id="voiceSw" title="切换"></button>
+        </div>
+
+        <div class="secT">合成服务（勾上的按顺序试）</div>
+        <div id="engineRows" data-search="合成服务 顺序 engine 引擎 tts"></div>
+
+        <div class="secT">Windows 自带语音</div>
+        <div class="row" data-search="windows 系统 自带 语音 sapi huihui system voice 声音">
+          <span class="t">声音<span class="k">system.voice</span></span>
+          <select class="sel" id="sysVoice"><option value="">自动（有中文语音就用中文的）</option></select>
+          <button class="btn" id="sysVoiceRefresh" title="重新读一遍系统里装了哪些语音">刷新</button>
+        </div>
+        <div id="sysRows"></div>
+
+        <div class="secT">阿里云百炼 · 千问语音合成</div>
+        <div class="row" data-search="百炼 千问 qwen api key 密钥 dashscope 云端">
+          <span class="t">API Key<span class="k">qwen.key</span></span>
+          <input class="txt" id="qwenKey" type="password" placeholder="sk-…（只存在这台电脑上，加密保存）" autocomplete="off" spellcheck="false">
+          <button class="btn" id="qwenKeySave">保存</button>
+          <button class="btn" id="qwenKeyClear">清掉</button>
+        </div>
+        <div class="row" data-search="百炼 千问 音色 声音 voice qwen">
+          <span class="t">音色<span class="k">qwen.voice</span></span>
+          <select class="sel" id="qwenVoice"></select>
+          <input class="txt" id="qwenVoiceCustom" placeholder="或填别的音色名，回车" spellcheck="false" style="flex:0 0 130px">
+        </div>
+        <div class="row" data-search="百炼 地域 北京 新加坡 国际 region">
+          <span class="t">地域<span class="k">qwen.region</span></span>
+          <select class="sel" id="qwenRegion">
+            <option value="cn">北京（阿里云国内站的 Key）</option>
+            <option value="intl">新加坡（阿里云国际站的 Key）</option>
+          </select>
+        </div>
+
+        <div class="secT">自定义接口</div>
+        <div class="row" data-search="自定义 接口 地址 http url indextts gpt-sovits 本机 语音服务">
+          <span class="t">地址<span class="k">http.url</span></span>
+          <input class="txt" id="httpUrl" placeholder="http://127.0.0.1:9882/tts/stream" spellcheck="false">
+          <button class="btn" id="httpUrlSave">保存</button>
+        </div>
+        <p class="hd">协议：POST {"text", "lang"}，回一行一个 JSON：{"type":"chunk","sampleRate":24000,"pcm":"base64 的 16 位单声道 PCM"} …… {"type":"done"}。详见 docs/voice.md。</p>
+
+        <div class="secT">什么时候说</div>
+        <div id="talkRows"></div>
+        <div class="btns">
+          <button class="btn pri" id="voiceTest">试听一句</button>
+          <button class="btn" id="voiceStop">停下</button>
+        </div>
+        <div class="meta" id="voiceErr" style="margin-top:6px;color:var(--accX)"></div>
+      </div>
+
+      <!-- ============ 系统 ============ -->
+      <div class="page" data-page="system">
+        <p class="hd">窗口、启动与退出</p>
+        <div class="row" data-search="不影响鼠标 点击穿透 mouseThrough through">
+          <span class="t">不影响鼠标<span class="k">mouseThrough</span></span>
+          <span style="flex:1;font-size:11px;color:var(--dim)">整窗穿透，点哪都落到下层窗口</span>
+          <button class="sw-on" id="throughSw" title="切换"></button>
+        </div>
+        <div class="row" data-search="开机自启 autostart boot 启动 自启">
+          <span class="t">开机自启<span class="k">autostart</span></span>
+          <span style="flex:1"></span>
+          <button class="sw-on" id="autostartSw" title="切换"></button>
+        </div>
+        <div class="btns">
+          <button class="btn" id="hidePet">隐藏桌宠</button>
+          <button class="btn" id="closeCenter">关闭控制中心</button>
+          <button class="btn danger" id="quitPet">退出桌宠</button>
+        </div>
+
+        <div class="secT">模型（PSD）</div>
+        <div class="card" id="modelBox" data-search="模型 PSD Photoshop 重新生成 实时 Live2D 改图 图层 嘴 脖子 model psd">
+          <div class="ch"><strong id="modelTitle">当前角色的模型</strong><span class="pill" id="modelPill">—</span></div>
+          <div class="meta" id="modelPath">—</div>
+          <div class="btns">
+            <button class="btn pri" id="modelOpen">打开 PSD</button>
+            <button class="btn" id="modelRebuild">重新生成</button>
+            <button class="btn" id="modelFolder">打开所在文件夹</button>
+          </div>
+          <div class="meta" id="modelMeta">在 Photoshop 里改完按 Ctrl+S 保存，桌宠几秒后就换上新样子。</div>
+          <div class="meta" id="modelNotes"></div>
+          <div class="meta" id="modelUnknown" style="color:var(--accX)"></div>
+          <details class="meta mWarn" id="modelWarnBox" style="display:none"><summary id="modelWarnSum"></summary><div id="modelWarn"></div></details>
+          <div class="meta">图层名要用生成工具认的名字（闭嘴线叫「mouth close」或「闭嘴」）；名字以 # 开头的图层不进模型；隐藏的图层也会进模型。</div>
+        </div>
+
+        <div class="secT">本机接口（给插件用）</div>
+        <div class="card" id="apiBox" data-search="本机接口 api 插件 令牌 token 端口 dsh">
+          <div class="ch"><strong>本机接口</strong><span class="pill" id="apiPill">—</span></div>
+          <div class="meta" id="apiMeta">—</div>
+          <div class="btns">
+            <button class="btn" id="apiCopy">复制令牌</button>
+            <button class="btn" id="apiRegen">换一个令牌</button>
+            <button class="btn" id="apiToggle">关掉</button>
+          </div>
+          <div class="meta">只听本机（127.0.0.1），每个请求都要带令牌，网页发来的请求一律拒绝。接口说明见 docs/local-api.md。</div>
+        </div>
+
+        <div class="secT">数据</div>
+        <div class="card" data-search="数据 目录 设置 日志 统计 config log">
+          <div class="meta" id="dataDir">—</div>
+          <div class="btns"><button class="btn" id="openDataDir">打开数据目录</button></div>
+        </div>
+
+        <div class="secT">危险区</div>
+        <div class="dangerBox">
+          <div style="font-size:11.5px;color:var(--ink);line-height:1.5">恢复全部默认：主题、动作参数、气泡编排、服装与开关全部回到初始状态。</div>
+          <div class="btns"><button class="btn danger" id="resetAll">恢复全部默认</button></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="center.js"></script>
+</body>
+</html>

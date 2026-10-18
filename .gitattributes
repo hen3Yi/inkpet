@@ -1,0 +1,12 @@
+# 统一换行符：文本一律 LF，避免 Windows 上提交出满屏 CRLF 警告
+* text=auto eol=lf
+
+# 二进制文件不做换行转换
+*.png binary
+*.psd binary
+*.moc3 binary
+*.jar binary
+*.exe binary
+*.ico binary
+*.wav binary
+*.mp3 binary

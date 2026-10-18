@@ -1,0 +1,71 @@
+{
+  "id": "sumo",
+  "order": 1,
+  "name": "苏墨",
+  "title": "墨龙执事",
+  "callUser": "主上",
+  "model": "assets/live2d/sumo/sumo.model3.json",
+  "psd": "assets/sumo/src/sumo.psd",
+  "psdExtraLayers": ["body", "sleeve_r", "sleeve_l"],
+  "psdSkipLayers": ["mouth close"],
+  "theme": { "style": "glass", "color": "ink" },
+  "custom": "苏墨随侍在侧",
+  "cloth": {
+    "keys": ["sleeves", "boots", "horns", "tail"],
+    "labels": { "sleeves": "长袖", "boots": "靴子", "horns": "龙角", "tail": "尾巴" }
+  },
+  "tail": { "param": "ParamTailWag", "idleAmp": 0.18, "idlePeriod": 4.2, "burstAmp": 0.9, "burstFreq": 2.2, "burstDecay": 1.5, "dragGain": 1.0, "sayAmp": 0.45 },
+  "rig": {
+    "cloth": {
+      "sleeves": ["ArtMeshLayerL", "ArtMeshLayerR"],
+      "boots": ["ArtMeshFootwear"],
+      "horns": ["ArtMeshHeadwear"],
+      "tail": ["ArtMeshTail"]
+    },
+    "_autoClothNote": "穿着靴子时自动隐藏脚（ArtMeshLegwear 是脚、ArtMeshLegwear2 是腿）：boots 一关自动露出脚，不用另设开关。",
+    "autoCloth": [
+      { "when": "boots", "hide": ["ArtMeshLegwear"] }
+    ],
+    "body": ["ArtMeshLayer", "ArtMeshTopwear", "ArtMeshLayerL", "ArtMeshLayerR", "ArtMeshBottomwear", "ArtMeshLegwear", "ArtMeshLegwear2", "ArtMeshFootwear", "ArtMeshHandwearL", "ArtMeshHandwearR", "ArtMeshNeck", "ArtMeshTail"],
+    "head": ["ArtMeshFace", "ArtMeshEyewhiteL", "ArtMeshEyewhiteR", "ArtMeshIridesL", "ArtMeshIridesR", "ArtMeshEyelashL", "ArtMeshEyelashR", "ArtMeshEyeCloseL", "ArtMeshEyeCloseR", "ArtMeshEyebrowL", "ArtMeshEyebrowR", "ArtMeshMouth", "ArtMeshMouthClose", "ArtMeshFrontHair", "ArtMeshBackHair", "ArtMeshEarsL", "ArtMeshEarsR", "ArtMeshHeadwear"],
+    "mouth": { "smile": "ArtMeshMouth", "open": "ArtMeshMouth", "triangle": "ArtMeshMouth" },
+    "mouthParam": { "mix": "max", "smile": 0, "open": 0, "triangle": 1, "lo": 0.1, "hi": 1, "smooth": 18 },
+    "_mouthNote": "闭嘴用程序压出来的那条缝：平时 ParamMouthOpenY = 0（张开的嘴压成一条缝），点 / 拖张满，说话按音量 0.1~1；PSD 里画的 mouth close 不进模型（psdSkipLayers）。",
+    "mouthOrder": false,
+    "swingFollow": [
+      { "draw": "ArtMeshBackHair", "root": [646, 520], "tip": [646, 990], "u0": 0.15 }
+    ],
+    "limbs": [
+      { "key": "armL", "draws": ["ArtMeshHandwearL", "ArtMeshLayerL"], "root": [722, 560], "tip": [845, 900], "gain": 0.42, "K": 300, "C": 14, "u0": 0.2 },
+      { "key": "armR", "draws": ["ArtMeshHandwearR", "ArtMeshLayerR"], "root": [565, 560], "tip": [440, 900], "gain": 0.42, "K": 300, "C": 14, "u0": 0.2 },
+      { "key": "legs", "draws": ["ArtMeshLegwear2", "ArtMeshLegwear", "ArtMeshFootwear"], "root": [640, 790], "tip": [640, 1245], "gain": 0.35, "K": 250, "C": 15 },
+      { "key": "skirt", "draws": ["ArtMeshBottomwear", "ArtMeshTopwear"], "root": [640, 800], "tip": [640, 1160], "gain": 0.24, "K": 210, "C": 12 },
+      { "key": "neck", "draws": ["ArtMeshNeck"], "root": [646, 541], "tip": [646, 458], "gain": 0.14, "K": 340, "C": 19 }
+    ],
+    "armKeys": ["armL", "armR"],
+    "ears": [
+      { "draw": "ArtMeshEarsR", "root": [522, 438], "tip": [384, 403], "dir": 1, "gain": 0.28, "freq": 6, "decay": 5, "u0": 0.1 },
+      { "draw": "ArtMeshEarsL", "root": [770, 420], "tip": [897, 358], "dir": -1, "gain": 0.28, "freq": 6, "decay": 5, "u0": 0.1, "delay": 0.05 }
+    ],
+    "extraParams": ["ParamTailWag"],
+    "hit": {
+      "head": ["ArtMeshFace", "ArtMeshFrontHair", "ArtMeshHeadwear", "ArtMeshEarsL", "ArtMeshEarsR", "ArtMeshEyewhiteL", "ArtMeshEyewhiteR", "ArtMeshIridesL", "ArtMeshIridesR", "ArtMeshEyelashL", "ArtMeshEyelashR", "ArtMeshEyeCloseL", "ArtMeshEyeCloseR", "ArtMeshEyebrowL", "ArtMeshEyebrowR", "ArtMeshMouth", "ArtMeshMouthClose"],
+      "tail": ["ArtMeshTail"]
+    }
+  },
+  "lines": {
+    "stats": [
+      "主上又来看苏墨了。今日的事，苏墨都替您记着。",
+      "苏墨在这里候着，主上忙您的便是。",
+      "主上点苏墨这一下，是有吩咐，还是只想看看苏墨？",
+      "龙寿千年，陪主上的这些日子，苏墨数得最仔细。",
+      "主上的手很暖。……苏墨只是如实禀报。",
+      "尾巴不是给主上玩的——不过主上想碰，苏墨也不拦着。",
+      "主上歇一歇吧，苏墨替您守着。",
+      "墨龙一脉守诺：主上在一日，苏墨便随侍一日。",
+      "苏墨不急，主上慢慢来。",
+      "被主上这样戳着，苏墨的角都要歪了。",
+      "有苏墨在，主上尽管把心放下。"
+    ]
+  }
+}

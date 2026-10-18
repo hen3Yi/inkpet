@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src file:; style-src file: 'unsafe-inline'; img-src file: data: blob:; connect-src file: data: blob:; media-src data: blob:; font-src file: data:">
+<title>桌宠</title>
+<!-- 样式（角色层级 + 气泡三态 + 主题变量） -->
+<link rel="stylesheet" href="pet-ui.css">
+</head>
+<body>
+<!-- 角色两层（层级：角色 < 特效），由 pet.js 驱动 -->
+<canvas id="stage"></canvas>
+<canvas id="fx"></canvas>
+
+<!-- ★ 气泡（三态）
+     平时：不显示（opacity 0，不占交互）
+     点一下角色：数据行（大字/小字）+ 台词行
+     说话中：只显示台词行；说完气泡消失
+     ⚠️ #bubble / #bubbleData / #bubbleText 三个 id 是 pet.js 的硬契约（它写 innerHTML/textContent
+        并直接切 style.display），改名或换标签都会让它静默失效 —— 别动这三个 id。 -->
+<div id="bubble"><div id="bubbleData"></div><div id="bubbleText"></div></div>
+
+<!-- 右键菜单由主进程的独立菜单小窗从鼠标位置弹出；本页只负责请求（petAPI.openMenu()）。 -->
+
+<!-- Live2D Cubism Core（不随本项目分发：npm run setup 从你下载的官方 Cubism SDK for Web 里拷过来）先挂全局，
+     pet.js 经 live2d-adapter.js 用它。pet-ui.js 只做主题 / 菜单请求 / 穿透样式。 -->
+<script src="vendor/live2d/live2dcubismcore.min.js"></script>
+<script type="module" src="pet.js"></script>
+<script type="module" src="pet-ui.js"></script>
+</body>
+</html>

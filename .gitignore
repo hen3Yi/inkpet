@@ -1,0 +1,20 @@
+# 依赖
+node_modules/
+
+# Live2D 的文件（npm run setup 从你自己下载的官方 SDK 里拷 / 打包出来的，不随仓库分发）
+renderer/vendor/
+.cache/
+
+# 第三方工具（自己下载）
+tools/psd2live/*.jar
+
+# 模型生成时留的上一版、生成记录、Cubism Editor 工程（都能从 PSD 重新生成）
+assets/live2d/*/.prev/
+assets/live2d/*/*.build.json
+assets/live2d/*/*.cmo3
+
+# 日志、临时文件
+*.log
+*.tmp
+dist/
+out/
