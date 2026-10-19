@@ -1,4 +1,4 @@
-# Irena pet drag helper -- native window follower (no app-region, so right-click stays alive)
+# InkPet drag helper -- native window follower (no app-region, so right-click stays alive)
 # Protocol on stdin, one command per line:
 #   DRAGSTART <hwnd>          start following the cursor (8ms loop, SetWindowPos with SWP_NOSIZE)
 #   BOUNDS <l> <t> <r> <b>    MODEL bounding box inside the window (PHYSICAL px, relative to window top-left).
@@ -41,7 +41,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 
-public class IrenaFollower {
+public class InkPetFollower {
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
   [DllImport("user32.dll")] public static extern bool IsProcessDPIAware();
   [DllImport("user32.dll")] static extern bool GetCursorPos(out POINT p);
@@ -325,53 +325,53 @@ public class IrenaFollower {
 
 # Force DPI awareness BEFORE any cursor/window API is touched, so this process and Electron share
 # one physical-px ruler (see UNIT CONTRACT above).
-[void][IrenaFollower]::SetProcessDPIAware()
-[IrenaFollower]::Say("OK READY " + [IrenaFollower]::DpiState())
+[void][InkPetFollower]::SetProcessDPIAware()
+[InkPetFollower]::Say("OK READY " + [InkPetFollower]::DpiState())
 
 while ($true) {
   $line = [Console]::In.ReadLine()
   if ($null -eq $line) { break }
   if ($line -match '^DRAGSTART\s+(\d+)$') {
-    $ok = [IrenaFollower]::Start([int64]$Matches[1])
-    [IrenaFollower]::Say("OK DRAGSTART " + $ok)
+    $ok = [InkPetFollower]::Start([int64]$Matches[1])
+    [InkPetFollower]::Say("OK DRAGSTART " + $ok)
   }
   elseif ($line -match '^BOUNDS\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)$') {
-    [IrenaFollower]::SetBounds([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4])
-    [IrenaFollower]::Say("OK BOUNDS " + $Matches[1] + "," + $Matches[2] + "," + $Matches[3] + "," + $Matches[4])
+    [InkPetFollower]::SetBounds([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4])
+    [InkPetFollower]::Say("OK BOUNDS " + $Matches[1] + "," + $Matches[2] + "," + $Matches[3] + "," + $Matches[4])
   }
   elseif ($line -match '^RECT\s+(\d+)$') {
-    [IrenaFollower]::Say("OK RECT " + [IrenaFollower]::RectReport([int64]$Matches[1]))
+    [InkPetFollower]::Say("OK RECT " + [InkPetFollower]::RectReport([int64]$Matches[1]))
   }
   elseif ($line -match '^TARGET\s+(\d+)$') {
-    [IrenaFollower]::SetTarget([int64]$Matches[1])
-    [IrenaFollower]::Say("OK TARGET " + $Matches[1])
+    [InkPetFollower]::SetTarget([int64]$Matches[1])
+    [InkPetFollower]::Say("OK TARGET " + $Matches[1])
   }
   elseif ($line -match '^HITBOX\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)$') {
     # silent on purpose: the main process refreshes this often, no need to echo it back
-    [IrenaFollower]::SetHitbox([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4])
+    [InkPetFollower]::SetHitbox([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4])
   }
   elseif ($line -match '^MASK\s+([0-9.]+)\s+(\d+)\s+(\d+)\s+([A-Za-z0-9+/=]+)$') {
     # silent like HITBOX: the main process re-sends it whenever the outline changes
-    [void][IrenaFollower]::SetMask([double]$Matches[1], [int]$Matches[2], [int]$Matches[3], $Matches[4])
+    [void][InkPetFollower]::SetMask([double]$Matches[1], [int]$Matches[2], [int]$Matches[3], $Matches[4])
   }
   elseif ($line -match '^FIT\s+(\d+)\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)\s+(-?\d+)$') {
-    $moved = [IrenaFollower]::Fit([int64]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4], [int]$Matches[5])
-    if ($moved) { [IrenaFollower]::Say("OK FIT " + $moved) }
+    $moved = [InkPetFollower]::Fit([int64]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4], [int]$Matches[5])
+    if ($moved) { [InkPetFollower]::Say("OK FIT " + $moved) }
   }
   elseif ($line -match '^FITCALC((\s+-?\d+){10})$') {
     $n = @($Matches[1].Trim() -split '\s+' | ForEach-Object { [int]$_ })
-    [IrenaFollower]::Say("OK FITCALC " + [IrenaFollower]::FitCalc($n[0], $n[1], $n[2], $n[3], $n[4], $n[5], $n[6], $n[7], $n[8], $n[9]))
+    [InkPetFollower]::Say("OK FITCALC " + [InkPetFollower]::FitCalc($n[0], $n[1], $n[2], $n[3], $n[4], $n[5], $n[6], $n[7], $n[8], $n[9]))
   }
   elseif ($line -match '^TESTHIT\s+(-?\d+)\s+(-?\d+)$') {
-    [IrenaFollower]::Say("OK TESTHIT " + [IrenaFollower]::TestHit([int]$Matches[1], [int]$Matches[2]))
+    [InkPetFollower]::Say("OK TESTHIT " + [InkPetFollower]::TestHit([int]$Matches[1], [int]$Matches[2]))
   }
   elseif ($line -match '^AUTO\s+([01])$') {
-    [IrenaFollower]::SetAuto($Matches[1] -eq '1')
-    [IrenaFollower]::Say("OK AUTO " + $Matches[1])
+    [InkPetFollower]::SetAuto($Matches[1] -eq '1')
+    [InkPetFollower]::Say("OK AUTO " + $Matches[1])
   }
   elseif ($line -match '^DRAGEND') {
-    [IrenaFollower]::Stop()
-    [IrenaFollower]::Say("OK DRAGEND")
+    [InkPetFollower]::Stop()
+    [InkPetFollower]::Say("OK DRAGEND")
   }
   elseif ($line -match '^QUIT') { break }
 }

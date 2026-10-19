@@ -33,7 +33,7 @@ for name in order:
     im = despeckle(im)
     if not im.getbbox():
         continue
-    # Full-canvas layers like Irena's PSD: PSD2Live builds hair meshes against the layer rect, and
+    # Full-canvas layers: PSD2Live builds hair meshes against the layer rect, and
     # cropped hair layers came out with stray triangles reaching the canvas corners.
     layer = PixelLayer.frompil(im, psd, name, top=0, left=0)
     psd.append(layer)
