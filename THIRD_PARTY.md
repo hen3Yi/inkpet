@@ -21,7 +21,7 @@
 只有从 PSD 生成模型时才用到。
 
 - 上游：<https://github.com/tsunehimatoi/psd2live>，GPL-3.0。它依赖 [umamo](https://github.com/umamoorg/umamo)，也是 GPL-3.0。
-- 我们改过的版本：（发布时补上地址），同样是 GPL-3.0，附源码。
+- 我们改过的版本：还没发布；发布时同样是 GPL-3.0，附源码。仓库里苏墨的模型是用它生成的。
   - 加了尾巴物理：生成 `ParamTail` 和 `ParamTailWag`。
   - 加了头发网格兜底。
 - 桌宠只是另起一个进程运行 PSD2Live（官方版的 `PSD2Live.exe`，或者 `java -jar PSD2Live.jar`），两者是分开的程序。PSD2Live 不随本仓库分发。
@@ -35,6 +35,7 @@
 - ComfyUI 插件：[ComfyUI-See-through](https://github.com/jtydhr88/ComfyUI-See-through)，MIT。
 - 原项目：[See-through](https://github.com/shitagaki-lab/see-through)，Apache-2.0。
 - 模型由插件下载，许可以模型页上写的为准。
+- 在线版由 See-through 的作者提供：[Hugging Face](https://huggingface.co/spaces/24yearsold/see-through-demo)、[魔搭 ModelScope](https://modelscope.cn/studios/ljsabc/See-Through)。用在线版时，立绘会上传到这两家的服务器上处理。
 
 ### Python 包
 

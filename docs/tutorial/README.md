@@ -1,6 +1,11 @@
 # 制作教程：从一张立绘到桌面上会动的桌宠
 
-这套教程以自带角色**苏墨**的真实制作过程为例，一步步讲怎么把自己的角色做成 InkPet 的桌宠。用到的工具都免费：AI 拆图层用 ComfyUI + See-through，修图用 Photoshop 或 Krita，生成 Live2D 模型用 PSD2Live。整个过程**不需要** Live2D 官方的 Cubism Editor。
+这套教程以自带角色**苏墨**的真实制作过程为例，一步步讲怎么把自己的角色做成 InkPet 的桌宠。用到的工具都免费：AI 拆图层用 See-through，修图用 Photoshop、Krita 或 Photopea，生成 Live2D 模型用 PSD2Live。整个过程**不需要** Live2D 官方的 Cubism Editor。
+
+不想先装一堆软件，拆图层和修图层可以在网页上做：
+
+- 拆图层：[See-through 在线版（Hugging Face）](https://huggingface.co/spaces/24yearsold/see-through-demo)，每天次数有限，也可以照第 2 章在自己电脑上跑；国内也可以用[魔搭上的在线版](https://modelscope.cn/studios/ljsabc/See-Through)。
+- 修图层：[Photopea](https://www.photopea.com/)，网页版的修图软件，能打开、保存 PSD。
 
 ![苏墨在桌面上](../images/hero.jpg)
 
@@ -10,7 +15,7 @@
 | --- | --- | --- |
 | [0. 开始之前](00-开始之前.md) | 整条流程、要装的软件、每一步的产物 | 读 5 分钟 |
 | [1. 准备立绘](01-准备立绘.md) | 什么样的立绘好拆、好动 | 半天（画或生成） |
-| [2. AI 拆图层](02-AI拆图层.md) | ComfyUI + See-through 把一张图拆成二十几层 | 1 小时 |
+| [2. AI 拆图层](02-AI拆图层.md) | See-through 把一张图拆成二十几层：网页版，或者自己电脑上的 ComfyUI | 网页版十几分钟；自己装 1 小时 |
 | [3. 修图层、起名字](03-修图层.md) | 补被挡住的地方、画闭眼、按规则给图层起名 | 1～2 天（主要是手修） |
 | [4. 生成 Live2D 模型](04-生成模型.md) | 用 PSD2Live 一键出模型，离屏预览检查 | 半小时 |
 | [5. 放进桌宠](05-放进桌宠.md) | 写角色档案：名字、台词、衣服开关、关节 | 1～2 小时 |

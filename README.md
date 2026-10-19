@@ -183,6 +183,7 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -Cont
   - **官方版**：从 [Releases 页](https://github.com/tsunehimatoi/psd2live/releases)下载 `windows-x64-portable.zip`，解压到 `tools/psd2live/`，让 `PSD2Live.exe` 正好在这个目录下。自带 Java，不用另装。尾巴不会单独摆。
   - **我们改过的版本**：自己编出 `PSD2Live.jar`，放进 `tools/psd2live/`，要 Java 21（设了 `JAVA_HOME` 或者 `java` 在 PATH 里）。尾巴会摆。
   - 推荐先用官方免安装版。修改版尚未发布，暂时无法下载；自带的苏墨模型已经包含尾巴物理，不需要重新生成就能使用。
+  - 装了 PSD2Live 也不会一启动就重新生成自带的模型（模型旁边的 `*.build.json` 记着它是哪份 PSD 生成的），改了 PSD 才会。苏墨用官方版重新生成后尾巴就不摆了，怎么换回来见[教程第 6 章](docs/tutorial/06-边画边看.md#几个小规矩)。
 
 Python、Java、PSD2Live 的路径也可以在 `config.json` 的 `modelBuild` 里写死：
 
@@ -198,14 +199,16 @@ Python、Java、PSD2Live 的路径也可以在 `config.json` 的 `modelBuild` �
 
 0. [开始之前](docs/tutorial/00-开始之前.md)：整条流程、要装的软件
 1. [准备立绘](docs/tutorial/01-准备立绘.md)
-2. [AI 拆图层](docs/tutorial/02-AI拆图层.md)：ComfyUI + See-through
-3. [修图层、起名字](docs/tutorial/03-修图层.md)：补画被挡住的地方，图层命名的规则
+2. [AI 拆图层](docs/tutorial/02-AI拆图层.md)：See-through，网页版或者自己电脑上的 ComfyUI
+3. [修图层、起名字](docs/tutorial/03-修图层.md)：补画被挡住的地方，图层命名的规则（Photoshop、Krita 或网页版的 Photopea）
 4. [生成 Live2D 模型](docs/tutorial/04-生成模型.md)：PSD2Live，离屏预览检查
 5. [放进桌宠](docs/tutorial/05-放进桌宠.md)：写角色档案
 6. [边画边看](docs/tutorial/06-边画边看.md)：存 PSD 自动重新生成
 7. [调手感](docs/tutorial/07-调手感.md)：眨眼、呼吸、摆动、点击和拖动的反应
 8. [语音和本机接口](docs/tutorial/08-语音和本机接口.md)
 9. [常见问题](docs/tutorial/09-常见问题.md)
+
+不想先装软件的话，拆图层和修图层可以在网页上做：[See-through 在线版](https://huggingface.co/spaces/24yearsold/see-through-demo)（每天次数有限；国内也可以用[魔搭上的在线版](https://modelscope.cn/studios/ljsabc/See-Through)）、[Photopea](https://www.photopea.com/)。见[教程第 0 章](docs/tutorial/00-开始之前.md#先在网页上试试)。
 
 ## 目录
 
@@ -214,7 +217,7 @@ main.js                 主进程：窗口、命中、拖动、角色、语音�
 preload.js              桌宠窗口的 preload
 renderer/               桌宠窗口（pet.js）、控制中心（center.*）、右键菜单（menu.*）
 live2d/driver.js        Live2D 驱动：在官方 Cubism Framework 上加了 rig、摆动、口型、命中
-src/voice/              语音合成（Windows 自带 / 千问 / 自定义接口）
+src/voice/              语音合成（千问 / 自定义接口 / Windows 自带）
 src/local-api.js        本机接口
 characters/             随程序带的角色档案
 assets/                 图标、角色模型和 PSD
