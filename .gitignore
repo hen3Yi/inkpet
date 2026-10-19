@@ -11,6 +11,8 @@ tools/psd2live/
 # 模型生成时留的上一版、生成记录、Cubism Editor 工程（都能从 PSD 重新生成）
 assets/live2d/*/.prev/
 assets/live2d/*/*.build.json
+# 自带模型的生成记录要随仓库走：桌宠靠它认出「模型就是这份 PSD 生成的」，装了生成工具也不会一启动就重新生成
+!assets/live2d/sumo/sumo.build.json
 assets/live2d/*/*.cmo3
 assets/live2d/*/*.can3
 

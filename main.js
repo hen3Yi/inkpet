@@ -7,6 +7,7 @@ const { pathToFileURL } = require('url');
 const voice = require('./src/voice');
 const localApi = require('./src/local-api');
 const { startPos, menuPos, besidePos } = require('./src/window-pos');
+const { fileSha1, readStamp, sameOpts, stampCurrent } = require('./src/model-stamp');
 
 // ---- 数据目录：设置、统计、日志都放在用户数据目录（不写进程序目录）；PET_DATA_DIR 可改（测试用）----
 const DATA_DIR = process.env.PET_DATA_DIR ? path.resolve(process.env.PET_DATA_DIR) : app.getPath('userData');
@@ -317,17 +318,12 @@ function psdPath(id) {
 function modelFile(id) { return charPath(prof(id), String(prof(id).model)); }
 function fileSig(p) { try { const s = fs.statSync(p); return s.size + ':' + Math.round(s.mtimeMs); } catch (e) { return null; } }
 // 除了 PSD 本身，档案里会改变生成结果的设置：psdSkipLayers（这些图层不进模型）。
-//   生成时记进模型旁边的 <名字>.build.json；设置改了而 PSD 没动 ⇒ 启动时也重新生成一次
+//   生成时连同 PSD 的内容指纹记进模型旁边的 <名字>.build.json（src/model-stamp.js）；设置改了而 PSD 没动 ⇒ 启动时也重新生成一次
 function mbOpts(id) {
   const s = prof(id).psdSkipLayers;
   return { skip: Array.isArray(s) ? s.map(String).filter((x) => x.trim()) : [] };
 }
-function mbStampOk(id) {
-  const want = JSON.stringify(mbOpts(id));
-  try {
-    return JSON.stringify(JSON.parse(fs.readFileSync(modelFile(id).replace(/\.model3\.json$/i, '.build.json'), 'utf8')).opts) === want;
-  } catch (e) { return want === JSON.stringify({ skip: [] }); }   // 没有记录（老模型）：档案没设这些就当是同一版
-}
+function mbStampFile(id) { return modelFile(id).replace(/\.model3\.json$/i, '.build.json'); }
 // 命令在不在：写了路径就看文件；只写了名字（python / java）就到 PATH 里找
 function cmdExists(cmd) {
   if (path.isAbsolute(cmd) || /[\\/]/.test(cmd)) return fs.existsSync(cmd);
@@ -417,6 +413,7 @@ async function mbBuild(id, why) {
   const outDir = path.join(stage, 'out');
   const tools = mbTools();
   const sig = fileSig(psd);
+  const psdSha1 = fileSha1(psd);
   const t0 = Date.now();
   MB.buildSig[id] = sig;
   mbSet(id, { state: 'build', stage: '整理 PSD', startedAt: t0, why, message: '', warnings: [], notes: [], unknown: [] });
@@ -460,7 +457,7 @@ async function mbBuild(id, why) {
     for (const f of [refs.Moc].concat(refs.Textures, refs.Physics ? [refs.Physics] : [])) {
       if (!fs.existsSync(path.join(outDir, f))) throw new Error('产物缺文件：' + f);
     }
-    fs.writeFileSync(path.join(outDir, base + '.build.json'), JSON.stringify({ psd: sig, opts, at: new Date().toISOString() }) + '\n');
+    fs.writeFileSync(path.join(outDir, base + '.build.json'), JSON.stringify({ psd: sig, sha1: psdSha1, opts, at: new Date().toISOString() }) + '\n');
     mbSet(id, { stage: '换上新模型' });
     mbSwap(outDir, dir, base);
     MB.rev[id] = Date.now();
@@ -514,10 +511,12 @@ function mbWatch() {
   for (const id in CHARS) {
     const psd = psdPath(id);
     if (!psd) continue;
-    // 模型比 PSD 新、生成时的档案设置也没变 = 已经是这一版；否则（桌宠没开时改过 PSD / 改了 psdSkipLayers）下面第一次检查就生成
-    const fresh = mtime(modelFile(id)) >= mtime(psd);
-    if (fresh && mbStampOk(id)) MB.sig[id] = fileSig(psd);
-    else if (fresh) plog('model watch ' + id + ': build options changed ' + JSON.stringify(mbOpts(id)));
+    // 模型就是这份 PSD、按现在的档案设置生成的 = 已经是这一版；否则（桌宠没开时改过 PSD / 改了 psdSkipLayers）下面第一次检查就生成
+    const stamp = readStamp(mbStampFile(id));
+    const current = fs.existsSync(modelFile(id)) && stampCurrent({ stamp, opts: mbOpts(id),
+      psdSha1: stamp && stamp.sha1 ? fileSha1(psd) : null, modelMtime: mtime(modelFile(id)), psdMtime: mtime(psd) });
+    if (current) MB.sig[id] = fileSig(psd);
+    else if (!sameOpts(stamp, mbOpts(id))) plog('model watch ' + id + ': build options changed ' + JSON.stringify(mbOpts(id)));
     // 生成工具没装（刚下载、只想用自带模型）：启动时不去生成，直接用现成的模型；真改了 PSD 再报缺什么
     if (!MB.sig[id] && fs.existsSync(modelFile(id)) && mbMissing().length) {
       MB.sig[id] = fileSig(psd);
