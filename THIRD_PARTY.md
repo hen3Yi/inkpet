@@ -21,10 +21,11 @@
 只有从 PSD 生成模型时才用到。
 
 - 上游：<https://github.com/tsunehimatoi/psd2live>，GPL-3.0。它依赖 [umamo](https://github.com/umamoorg/umamo)，也是 GPL-3.0。
-- 我们改过的版本：还没发布；发布时同样是 GPL-3.0，附源码。仓库里苏墨的模型是用它生成的。
-  - 加了尾巴物理：生成 `ParamTail` 和 `ParamTailWag`。
-  - 加了头发网格兜底。
-- 桌宠只是另起一个进程运行 PSD2Live（官方版的 `PSD2Live.exe`，或者 `java -jar PSD2Live.jar`），两者是分开的程序。PSD2Live 不随本仓库分发。
+- 我们改过的版本：<https://github.com/hen3Yi/psd2live>（`inkpet` 分支），同样是 GPL-3.0。仓库里苏墨的模型是用它生成的。
+  - 基于上游提交 `f5b7931`（0.1.0），用的 umamo 是提交 `a6efc01`（没改）。
+  - 下载在它的 [Releases 页](https://github.com/hen3Yi/psd2live/releases)：免安装包、jar，另附这一版用的 umamo 源码。
+  - 加了尾巴物理：生成 `ParamTail` 和 `ParamTailWag`；加了头发网格兜底；改了闭眼、嘴和耳朵的绑定等。完整清单见 [INKPET.md](https://github.com/hen3Yi/psd2live/blob/inkpet/INKPET.md)。
+- 桌宠只是另起一个进程运行 PSD2Live（免安装包里的 `PSD2Live.exe`，或者 `java -jar PSD2Live.jar`），两者是分开的程序。PSD2Live 不随本仓库分发。
 - 官方 3.x 版（<https://github.com/tsunehimatoi/psd2live/releases>）可以直接用；我们改过的版本基于 0.1。
 - PSD2Live 和 umamo 是按 Live2D 文件格式自己实现的第三方工具，和 Live2D Inc. 没有关系。
 

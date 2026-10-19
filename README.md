@@ -181,8 +181,8 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -Cont
 - **Python 3.10+**，再装几个包：`pip install psd-tools numpy pillow`。
 - **PSD2Live**：一个开源的 PSD → Live2D 模型生成工具（GPL-3.0），两种任选：
   - **官方版**：从 [Releases 页](https://github.com/tsunehimatoi/psd2live/releases)下载 `windows-x64-portable.zip`，解压到 `tools/psd2live/`，让 `PSD2Live.exe` 正好在这个目录下。自带 Java，不用另装。尾巴不会单独摆。
-  - **我们改过的版本**：自己编出 `PSD2Live.jar`，放进 `tools/psd2live/`，要 Java 21（设了 `JAVA_HOME` 或者 `java` 在 PATH 里）。尾巴会摆。
-  - 推荐先用官方免安装版。修改版尚未发布，暂时无法下载；自带的苏墨模型已经包含尾巴物理，不需要重新生成就能使用。
+  - **我们改过的版本**：从 [hen3Yi/psd2live 的 Releases 页](https://github.com/hen3Yi/psd2live/releases)下载 `PSD2Live-0.1.0-inkpet.1-windows-x64-portable.zip`，同样解压到 `tools/psd2live/`。也自带 Java。尾巴会摆。也有单个 jar，要 Java 21（设了 `JAVA_HOME` 或者 `java` 在 PATH 里），改名成 `PSD2Live.jar` 放进同一个目录。改了什么见 [INKPET.md](https://github.com/hen3Yi/psd2live/blob/inkpet/INKPET.md)。
+  - 官方版一直在更新，带完整的编辑器；我们改过的版本基于 0.1，多了尾巴物理，自带的苏墨就是用它生成的。只用自带的苏墨、不改 PSD 的话，两个都不用装。
   - 装了 PSD2Live 也不会一启动就重新生成自带的模型（模型旁边的 `*.build.json` 记着它是哪份 PSD 生成的），改了 PSD 才会。苏墨用官方版重新生成后尾巴就不摆了，怎么换回来见[教程第 6 章](docs/tutorial/06-边画边看.md#几个小规矩)。
 
 Python、Java、PSD2Live 的路径也可以在 `config.json` 的 `modelBuild` 里写死：
