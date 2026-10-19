@@ -124,12 +124,12 @@
   }
   #ccTop h1 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: .05em; color: var(--accX); }
   #ccTop .sub { font-size: 11px; color: var(--dim); margin-right: auto; }
-  #ccClose {
+  #ccClose, #ccMinimize {
     -webkit-app-region: no-drag;
     width: 28px; height: 28px; border: 1px solid var(--ctlBd); border-radius: var(--rCtl);
     background: var(--ctlBg); color: var(--ink); font-size: 15px; line-height: 1;
   }
-  #ccClose:hover { background: var(--accX); border-color: var(--accX); color: var(--onText); }
+  #ccClose:hover, #ccMinimize:hover { background: var(--accX); border-color: var(--accX); color: var(--onText); }
 
   #sbar { flex: 0 0 auto; padding: 9px 14px 10px; border-bottom: 1px solid var(--sep); }
   #search {
@@ -334,6 +334,7 @@
   <div id="ccTop">
     <h1 id="ccTitle">桌宠 · 控制中心</h1>
     <span class="sub">角色 / 外观 / 语音 / 设置 全收在这一处</span>
+    <button id="ccMinimize" title="最小化到托盘" aria-label="最小化到托盘">—</button>
     <button id="ccClose" title="关闭（Esc）">✕</button>
   </div>
 
@@ -449,13 +450,15 @@
         <div class="secT">合成服务（勾上的按顺序试）</div>
         <div id="engineRows" data-search="合成服务 顺序 engine 引擎 tts"></div>
 
-        <div class="secT">Windows 自带语音</div>
+        <div id="sysVoiceOptions" hidden>
+        <div class="secT">Windows 自带语音（兼容选项，仅手动启用）</div>
         <div class="row" data-search="windows 系统 自带 语音 sapi huihui system voice 声音">
           <span class="t">声音<span class="k">system.voice</span></span>
           <select class="sel" id="sysVoice"><option value="">自动（有中文语音就用中文的）</option></select>
           <button class="btn" id="sysVoiceRefresh" title="重新读一遍系统里装了哪些语音">刷新</button>
         </div>
         <div id="sysRows"></div>
+        </div>
 
         <div class="secT">阿里云百炼 · 千问语音合成</div>
         <div class="row" data-search="百炼 千问 qwen api key 密钥 dashscope 云端">
@@ -508,7 +511,7 @@
           <button class="sw-on" id="autostartSw" title="切换"></button>
         </div>
         <div class="btns">
-          <button class="btn" id="hidePet">隐藏桌宠</button>
+          <button class="btn" id="hidePet">最小化到托盘</button>
           <button class="btn" id="closeCenter">关闭控制中心</button>
           <button class="btn danger" id="quitPet">退出桌宠</button>
         </div>

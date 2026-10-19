@@ -540,6 +540,7 @@ function startAction(def) {
 }
 
 function loop(now) {
+  if (S.minimized) { S._last = now; requestAnimationFrame(loop); return; }
   if (!rt) { requestAnimationFrame(loop); return; }
   if (!S._fit2) { S._fit2 = 1; fit(); }   // 首帧后按画布重算一次（此时 canvasWidth 已就绪）
   if (!S._logged && S.view) {
@@ -903,6 +904,8 @@ async function boot() {
   if (window.petAPI.onCharacter) window.petAPI.onCharacter((info) => { void swapCharacter(info); });
   // ★ 模型实时生成：PSD 保存后主进程生成好新模型 ⇒ 同一个角色原地重载
   if (window.petAPI.onModelReload) window.petAPI.onModelReload((info) => { void swapCharacter(info, true); });
+  if (window.petAPI.onMinimized) window.petAPI.onMinimized((v) => { S.minimized = !!v; });
+  if (window.petAPI.minimizedState) S.minimized = !!(await window.petAPI.minimizedState());
   // 外观调节（摇晃/头部/身体比例）：订阅面板改动 + 启动主动拉一次
   if (window.petAPI.onTune) window.petAPI.onTune((t) => applyTune(t));
   if (window.petAPI.tuneState) {

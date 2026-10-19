@@ -19,6 +19,8 @@
     if (!s) { return; }
     var through = document.querySelector('.mi[data-id="through"]');
     if (through) through.classList.toggle('on', !!s.mouseThrough);
+    var minimize = document.querySelector('.mi[data-id="minimize"] .lbl');
+    if (minimize) minimize.textContent = s.minimized ? '恢复桌宠' : '最小化到托盘';
     // 正在说话时这一项变成「停下」（Ctrl+Alt+U 也能停）
     var say = document.querySelector('.mi[data-id="say"] .lbl');
     if (say) say.textContent = s.speaking ? '停下' : '说一句';
@@ -59,7 +61,7 @@
   });
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') { api.close(); return; }
-    var map = { m: 'through', s: 'say', q: 'quit' };
+    var map = { m: 'through', s: 'say', n: 'minimize', q: 'quit' };
     var id = map[String(e.key || '').toLowerCase()];
     if (id && !e.ctrlKey && !e.altKey) { api.pick(id); }
   });

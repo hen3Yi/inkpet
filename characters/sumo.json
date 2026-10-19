@@ -10,6 +10,25 @@
   "psdSkipLayers": ["mouth close"],
   "theme": { "style": "glass", "color": "ink" },
   "custom": "苏墨随侍在侧",
+  "tune": {
+    "swayPeriod": 6,
+    "swayBody": 0.6,
+    "swayZ": 0.05,
+    "breathPeriod": 4.3,
+    "breathAmp": 1.55,
+    "headFollow": 1,
+    "eyeFollow": 1,
+    "dragTilt": 0.5,
+    "dragBody": 1,
+    "limbArm": 0.5,
+    "headDy": 0,
+    "bodySx": 0.94,
+    "bodySy": 1,
+    "blinkMin": 0.4,
+    "blinkMax": 12,
+    "blinkDouble": 0,
+    "clickVol": 0.3
+  },
   "cloth": {
     "keys": ["sleeves", "boots", "horns", "tail"],
     "labels": { "sleeves": "长袖", "boots": "靴子", "horns": "龙角", "tail": "尾巴" }

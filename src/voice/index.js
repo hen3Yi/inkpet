@@ -16,9 +16,9 @@ const { spawn } = require('child_process');
 const { speechText } = require('./text');
 
 const ENGINES = [
-  { id: 'system', name: 'Windows 自带语音', note: '不用装东西，音质一般；要系统里装了对应语言的语音' },
   { id: 'qwen', name: '阿里云百炼 · 千问语音合成', note: '音质好、开口快（约 0.3～1 秒），按字数计费，要自己的 API Key' },
   { id: 'http', name: '自定义接口', note: '接你自己的语音服务（IndexTTS、GPT-SoVITS 等），协议见 docs/voice.md' },
+  { id: 'system', name: 'Windows 自带语音（兼容选项）', note: '仅供手动选择，不推荐；音质较差，不会自动启用或兜底' },
 ];
 const ENGINE_IDS = ENGINES.map((e) => e.id);
 // 千问实时合成自带的几个音色（完整列表以阿里云文档为准；也可以直接填别的音色名）
@@ -36,8 +36,8 @@ const QWEN_SAMPLE_RATE = 24000;
 
 function defaultConfig() {
   return {
-    enabled: true,
-    engines: ['system'],
+    enabled: false,
+    engines: [],
     clickTalk: false,      // 点角色时念台词
     idleMinutes: 0,        // 多少分钟没人碰它就念一句台词（0 = 不说）
     qwen: { key: '', voice: 'Cherry', model: 'qwen3-tts-flash-realtime', region: 'cn' },   // key 是 secret.seal 封好的

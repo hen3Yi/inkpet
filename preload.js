@@ -19,6 +19,8 @@ contextBridge.exposeInMainWorld('petAPI', {
   // ★ 命中轮廓：角色画出来的像素按格子记成位图，主进程按它判命中（透明的地方不挡鼠标）
   reportHitmask: (m) => ipcRenderer.send('pet:hitmask', m),
   onInside: (cb) => ipcRenderer.on('pet:inside', (_e, v) => cb(v)),
+  onMinimized: (cb) => ipcRenderer.on('pet:minimized', (_e, v) => cb(v)),
+  minimizedState: () => ipcRenderer.invoke('pet:minimized-state'),
   // ★ 输入兜底：拖动由 helper 自己发起 / 结束时推这个通道
   onDragAuto: (cb) => ipcRenderer.on('pet:dragauto', (_e, v) => cb(v)),
   // ★ 兜底点击：窗口收不到 mousedown 时由主进程代播点击反馈（动画脉冲 + 音效 + 气泡）

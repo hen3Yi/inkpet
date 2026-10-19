@@ -20,6 +20,7 @@ import { CubismPhysics } from '@framework/physics/cubismphysics';
 import { CubismEyeBlink } from '@framework/effect/cubismeyeblink';
 import { CubismShader_WebGL } from '@framework/rendering/cubismshader_webgl';
 import { CubismDefaultParameterId } from '@framework/cubismdefaultparameterid';
+import { transformProportions } from './proportions.mjs';
 
 // ★ 2026-10-17 多角色：部件名、枢轴、口型这些「跟着模型走」的设定收进 rig（角色档案 characters/<id>.json 的 rig 段，
 //   由 opts.rig 传进来）。没给 rig 就用下面这些默认值（PSD2Live 生成的模型的部件名，多数模型通用）。
@@ -243,6 +244,9 @@ export class PetLive2D {
     /** 平滑后的拖拽摆动量（PSD 口径 ±1.5）与身体旋转枢轴（画布坐标 = 脖子中心） */
     this.curSwing = (0);
     this.bodyPivot = (null);
+    this.bodySx = 1;
+    this.bodySy = 1;
+    this.headDy = 0;
     /** ★ 四肢各自的弹簧状态 { a: 角度值, v: 角速度 } 与根部枢轴（画布坐标） */
     this.limbState = ({});
     /** 枢轴：x/y = 根部（旋转中心），tx/ty = 骨轴另一头（算权重衰减用） */
@@ -557,7 +561,32 @@ export class PetLive2D {
     this.applyMouth();
     if (this.rig.mouthFollowAffine) this.applyMouthFollow();
     this.applyCrease();
+    this.applyProportions();
     this.applyClothMask();
+  }
+  // 最后改顶点，让嘴、耳朵、配件和命中都使用同一份变形后的几何。
+  applyProportions() {
+    if (this.bodySx === 1 && this.bodySy === 1 && this.headDy === 0) return;
+    const neck = this.bodyPivot || { x: this.canvasWidth / 2, y: this.canvasHeight * 0.4 };
+    const legs = this.rig.limbs.find((l) => l.key === 'legs');
+    const pivot = legs ? { x: legs.root[0], y: legs.root[1] }
+      : { x: neck.x, y: this.canvasHeight * 0.7 };
+    const heads = new Set(this.rig.head);
+    const names = new Set([...this.rig.body, ...heads]);
+    for (const name of names) {
+      const i = this.dIdx[name];
+      if (i === undefined) continue;
+      transformProportions(this.model.getDrawableVertexPositions(i), {
+        sx: this.bodySx, sy: this.bodySy, headDy: this.headDy,
+        head: heads.has(name), pivot, neck,
+        ppu: this.pixelsPerUnit, ox: this.canvasOriginX, oy: this.canvasOriginY,
+      });
+    }
+  }
+  setProportions(sx, sy, headDy) {
+    if (Number.isFinite(sx)) this.bodySx = Math.max(0.6, Math.min(1.6, sx));
+    if (Number.isFinite(sy)) this.bodySy = Math.max(0.6, Math.min(1.6, sy));
+    if (Number.isFinite(headDy)) this.headDy = Math.max(-80, Math.min(80, headDy));
   }
   /** 查询参数索引 + 上下限 + 默认值（一次缓存） */
   cacheParam(name) {

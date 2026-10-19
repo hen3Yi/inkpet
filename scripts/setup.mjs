@@ -111,9 +111,10 @@ async function main() {
   fs.writeFileSync(path.join(VENDOR, 'SDK_VERSION.txt'), (ver || 'unknown') + '\n' + root + '\n');
   console.log('Live2D 运行库装好了：renderer/vendor/live2d/（这个目录不进仓库）');
 
-  const jar = path.join(ROOT, 'tools', 'psd2live', 'PSD2Live.jar');
-  if (!fs.existsSync(jar)) {
-    console.log('（可选）要用「改 PSD 自动重新生成模型」，再把 PSD2Live.jar 放到 tools/psd2live/，见 README「从 PSD 生成模型」。');
+  const toolDir = path.join(ROOT, 'tools', 'psd2live');
+  const native = path.join(toolDir, process.platform === 'win32' ? 'PSD2Live.exe' : 'PSD2Live');
+  if (!fs.existsSync(native) && !fs.existsSync(path.join(toolDir, 'PSD2Live.jar'))) {
+    console.log('（可选）要用「改 PSD 自动重新生成模型」，把官方免安装包解压到 tools/psd2live/，见 README「从 PSD 生成模型」。');
   }
   console.log('下一步：npm start');
 }

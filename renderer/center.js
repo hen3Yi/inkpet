@@ -579,7 +579,7 @@ var SAY_DEMO = '';   // 预览用的台词：取当前角色档案 lines.stats �
     if (!callable('voiceGet')) return;
     api.voiceGet().then(applyVoice).catch(function () {});
   }
-  // Windows 自带的语音：第一次打开语音页时读一遍（起一个 PowerShell，要一两秒）
+  // 仅在用户主动勾选系统语音或点刷新时枚举，不在打开语音页时自动接入。
   function loadSysVoices(force) {
     if (!callable('voiceSystemList') || (VOICE.sysVoices && !force)) return;
     api.voiceSystemList().then(function (list) {
@@ -595,6 +595,8 @@ var SAY_DEMO = '';   // 预览用的台词：取当前角色档案 lines.stats �
     var sw = $id('voiceSw'); if (sw) sw.classList.toggle('on', !!(c && c.enabled));
     var er = $id('voiceErr'); if (er) er.textContent = VOICE.lastError ? ('上一句没念出来：' + VOICE.lastError) : '';
     if (!c) return;
+    var sysOptions = $id('sysVoiceOptions');
+    if (sysOptions) sysOptions.hidden = c.engines.indexOf('system') < 0;
     // 合成服务：勾选 + 上下移（勾上的按顺序试，没勾的排在后面）
     var box = $id('engineRows');
     if (box) {
@@ -623,6 +625,7 @@ var SAY_DEMO = '';   // 预览用的台词：取当前角色档案 lines.stats �
           var list = c.engines.slice();
           if (chk.checked) { if (list.indexOf(id) < 0) list.push(id); } else list = list.filter(function (x) { return x !== id; });
           voiceSet({ engines: list }, e.name + '：' + (chk.checked ? '用' : '不用'));
+          if (id === 'system' && chk.checked) loadSysVoices(false);
         });
         function move(d) {
           var list = c.engines.slice(), i = list.indexOf(id), j = i + d;
@@ -912,8 +915,8 @@ var SAY_DEMO = '';   // 预览用的台词：取当前角色档案 lines.stats �
     var search = $id('search');
     if (search) search.value = '';
     applySearch();
-    // 切到语音页：重新取一次状态，第一次顺便读一遍 Windows 自带的语音
-    if (k === 'voice') { refreshVoice(); loadSysVoices(false); }
+    // 切到语音页只取设置；不自动枚举系统语音。
+    if (k === 'voice') refreshVoice();
     if (k === 'system') apiCmd('info');
   }
 
@@ -987,6 +990,7 @@ var SAY_DEMO = '';   // 预览用的台词：取当前角色档案 lines.stats �
 
     // 关闭
     var cc = $id('ccClose'); if (cc) cc.addEventListener('click', function () { if (callable('close')) api.close(); });
+    var cm = $id('ccMinimize'); if (cm) cm.addEventListener('click', function () { if (callable('hide')) api.hide(); });
 
     // 搜索
     var search = $id('search'); if (search) search.addEventListener('input', applySearch);

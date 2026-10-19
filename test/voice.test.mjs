@@ -1,6 +1,6 @@
 // 语音模块的测试：设置的清理 / 合并、密钥不外露、自定义接口的流式协议、Windows 自带语音（只合成不播放）。
 //   npm test
-//   不想跑 Windows 自带语音那一项（要起 PowerShell）：PET_TEST_SYSTEM_TTS=0
+//   Windows 自带语音测试仅手动启用：PET_TEST_SYSTEM_TTS=1
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -14,6 +14,16 @@ const secret = {
   seal: (s) => 'test:' + Buffer.from(s).toString('base64'),
   open: (s) => (String(s).startsWith('test:') ? Buffer.from(String(s).slice(5), 'base64').toString() : ''),
 };
+
+test('首次启动关闭语音，缺省设置不会自动选择系统语音', async () => {
+  const cfg = voice.defaultConfig();
+  assert.equal(cfg.enabled, false);
+  assert.deepEqual(cfg.engines, []);
+  assert.deepEqual(voice.cleanConfig({}).engines, []);
+  const r = await voice.speak(cfg, '测试', { onChunk() { assert.fail('未选择服务不应合成'); }, secret });
+  assert.equal(r.ok, false);
+  assert.equal(r.error, '没有选合成服务');
+});
 
 test('cleanConfig 补默认、丢掉不认识的', () => {
   const c = voice.cleanConfig({ enabled: false, engines: ['qwen', 'nope', 'qwen', 'system'], idleMinutes: 999, qwen: { region: 'mars' }, extra: 1 });
@@ -91,7 +101,7 @@ test('自定义接口连不上：报「服务没开」', async () => {
   assert.equal(r.ok, false);
 });
 
-test('Windows 自带语音：合成出 24 kHz PCM（不播放）', { skip: process.platform !== 'win32' || process.env.PET_TEST_SYSTEM_TTS === '0' }, async () => {
+test('Windows 自带语音：合成出 24 kHz PCM（不播放）', { skip: process.platform !== 'win32' || process.env.PET_TEST_SYSTEM_TTS !== '1' }, async () => {
   const cfg = Object.assign(voice.defaultConfig(), { engines: ['system'] });
   let bytes = 0, rate = 0;
   const r = await voice.speak(cfg, '你好，我是桌宠。', { onChunk: (sr, buf) => { rate = sr; bytes += buf.length; }, secret });

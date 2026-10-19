@@ -112,6 +112,7 @@ export async function createLive2DRuntime(canvas, opts = {}) {
       inner.setDragTilt(t.dragTilt);
       inner.setDragBody(t.dragBody);
       inner.setLimbArm(t.limbArm);   // ★ 手臂摆幅倍率（面板「四肢摆动」组）
+      inner.setProportions(t.bodySx, t.bodySy, t.headDy);
     },
 
     /** ★ 额外参数（尾巴 ParamTailWag 等）：-1..1；模型里没有就不写 */

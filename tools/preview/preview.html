@@ -25,7 +25,20 @@ try {
   window.__log = [];
   const inner = new PetLive2D(canvas, { shaderPath, rig: ch.rig || null, log: (s) => window.__log.push(String(s)) });
   await inner.load(new URL(ch.model, base).href);
+  const tune = { bodySx: 1, bodySy: 1, headDy: 0, breathPeriod: 3.4, breathAmp: 1,
+    headFollow: 1, eyeFollow: 1, dragTilt: 0.5, dragBody: 1, limbArm: 1, ...ch.tune };
+  function applyTune(patch) {
+    Object.assign(tune, patch);
+    inner.setProportions(tune.bodySx, tune.bodySy, tune.headDy);
+    inner.setBreath(tune.breathPeriod, tune.breathAmp);
+    inner.setFollow(tune.headFollow, tune.eyeFollow);
+    inner.setDragTilt(tune.dragTilt);
+    inner.setDragBody(tune.dragBody);
+    inner.setLimbArm(tune.limbArm);
+  }
+  applyTune({});
   window.__step = (st) => {
+    if (st.tune) applyTune(st.tune);
     if (st.motion) inner.setMotion(st.motion[0], st.motion[1], st.motion[2], st.motion[3]);
     if (st.pointer) inner.setPointer(st.pointer[0], st.pointer[1]);
     if (typeof st.eye === 'number') inner.setEyeOpen(st.eye);

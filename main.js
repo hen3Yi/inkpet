@@ -14,7 +14,7 @@ try { fs.mkdirSync(DATA_DIR, { recursive: true }); } catch (e) { /* ignore */ }
 
 // ---- 只开一只：已经开着时再启动，就把开着的那只亮出来、自己退出（锁跟着 Electron 的用户数据目录走，测试实例换 --user-data-dir）----
 if (!app.requestSingleInstanceLock()) app.exit(0);
-app.on('second-instance', () => { if (win && !win.isDestroyed()) win.showInactive(); });
+app.on('second-instance', () => restoreFromTray());
 
 // ---- 配置（尺寸 + 服装）：持久化到 config.json ----
 const SIZES = { small: 300, normal: 430, large: 580 };   // 旧三档，作滑条刻度参考
@@ -277,7 +277,7 @@ function switchCharacter(why) {
     win.webContents.send('pet:tune', cfg.tune);
     win.webContents.send('pet:bubble-cfg', cfg.bubble);
   }
-  try { if (tray) tray.setToolTip(prof().name + ' · 桌宠'); } catch (e) { /* ignore */ }
+  try { if (tray) tray.setToolTip(prof().name + (minimizedToTray ? ' · 已最小化，点击恢复' : ' · 桌宠')); } catch (e) { /* ignore */ }
   pushCenterCfg();
   pushMenuState();
 }
@@ -736,7 +736,7 @@ function voiceStateText() {
 let lastTouchAt = Date.now();
 function idleTalkTick() {
   const m = Number(cfg.voice.idleMinutes) || 0;
-  if (!(m > 0) || SAY.busy || cfg.mouseThrough) return;
+  if (!(m > 0) || SAY.busy || cfg.mouseThrough || minimizedToTray) return;
   if (Date.now() - Math.max(lastTouchAt, SAY.lastAt) < m * 60000) return;
   let idle = 0;
   try { idle = powerMonitor.getSystemIdleTime(); } catch (e) { idle = 0; }
@@ -793,7 +793,40 @@ let heartEye = process.env.PET_HEART === '1';
 let curBand = BUBBLE_BAND;   // 当前窗口高度里含的气泡带宽（改带宽走相对增减，避开 DIP 舍入漂移）
 let win = null;
 let tray = null;
+let minimizedToTray = false;
 let lastMoveAt = 0;
+
+function minimizeToTray() {
+  // 没有恢复入口时不隐藏，避免托盘创建失败后找不回桌宠。
+  if (!tray || tray.isDestroyed() || !win || win.isDestroyed()) return;
+  minimizedToTray = true;
+  closeMenuWin();
+  if (dragging) nativeDragEnd();
+  helperCmd('AUTO 0', true);
+  lastHelperHitbox = ''; lastHelperMask = ''; lastInside = null;
+  win.setIgnoreMouseEvents(true, { forward: true });
+  win.webContents.send('pet:inside', false);
+  win.webContents.send('pet:minimized', true);
+  sayStop('minimize');
+  if (centerWin && !centerWin.isDestroyed()) centerWin.hide();
+  win.hide();
+  tray.setToolTip(prof().name + ' · 已最小化，点击恢复');
+  pushMenuState();
+  plog('minimized to tray');
+}
+
+function restoreFromTray() {
+  if (!win || win.isDestroyed()) return;
+  minimizedToTray = false;
+  win.showInactive();
+  win.webContents.send('pet:minimized', false);
+  win.setIgnoreMouseEvents(true, { forward: true });
+  lastInside = null; lastHelperHitbox = ''; lastHelperMask = '';
+  armAutoFallback();
+  if (tray && !tray.isDestroyed()) tray.setToolTip(prof().name + ' · 桌宠');
+  pushMenuState();
+  plog('restored from tray');
+}
 
 // 日志：用户数据目录下的 main.log / renderer.log；启动时超过 5 MB 就换成 *.old.log 重新记
 const LOG_MAX = 5 * 1024 * 1024;
@@ -863,7 +896,7 @@ function createWindow() {
   win.on('move', () => { lastMoveAt = Date.now(); rememberPos(); });
   win.setVisibleOnAllWorkspaces(true);
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
-  win.once('ready-to-show', () => win.showInactive());
+  win.once('ready-to-show', () => { if (!minimizedToTray) win.showInactive(); });
   // 默认整窗穿透（鼠标事件 forward 给渲染进程做命中测试）
   win.setIgnoreMouseEvents(true, { forward: true });
   win.on('closed', () => { win = null; closePanel(); });
@@ -994,11 +1027,12 @@ function pushCenterCfg() {
 //   为什么要有它：实测「原来的原生菜单会挡桌宠、只能贴窗口边弹」；自绘在桌宠窗里也必然遮角色
 //   （窗只有 200×266）。⇒ 独立小窗，定位到鼠标位置，主题跟 cfg.theme 走，点空白/失焦即收起。
 let menuWin = null;
+let menuRequested = false;
 let menuShownAt = 0;   // 菜单窗本次弹出的时刻（blur 最小驻留用）
-const MENU_W = 236, MENU_H = 238;   // 四项 + 「角色」一行（装了两个以上角色才显示）
+const MENU_W = 236, MENU_H = 272;   // 含最小化 / 恢复和可选角色行
 
 function menuState() {
-  return { mouseThrough: !!cfg.mouseThrough, speaking: !!SAY.busy, theme: cfg.theme, chars: charSnapshot() };
+  return { mouseThrough: !!cfg.mouseThrough, speaking: !!SAY.busy, minimized: minimizedToTray, theme: cfg.theme, chars: charSnapshot() };
 }
 function pushMenuState() {
   if (menuWin && !menuWin.isDestroyed()) {
@@ -1006,12 +1040,14 @@ function pushMenuState() {
   }
 }
 function closeMenuWin() {
+  menuRequested = false;
   if (menuWin && !menuWin.isDestroyed()) menuWin.hide();
 }
 function menuPick(id) {
   closeMenuWin();
   try {
     if (id === 'center') openCenter();
+    else if (id === 'minimize') { if (minimizedToTray) restoreFromTray(); else minimizeToTray(); }
     else if (id === 'theme') openCenter('look');
     else if (id === 'through') setMouseThrough(!cfg.mouseThrough);
     else if (id.indexOf('char:') === 0) setCharacterMode(id.slice(5));
@@ -1024,6 +1060,7 @@ function menuPick(id) {
   plog('menu pick ' + id);
 }
 function openMenuAtCursor() {
+  menuRequested = true;
   let pt = { x: 0, y: 0 };
   try { pt = screen.getCursorScreenPoint(); } catch (e) { /* ignore */ }
   // ★ screen API 返回 DIP、setBounds 也收 DIP ⇒ 不用换算；按鼠标所在的那块屏幕的工作区夹取
@@ -1054,7 +1091,7 @@ function openMenuAtCursor() {
     });
     menuWin.on('closed', () => { menuWin = null; });
     menuWin.once('ready-to-show', () => {
-      if (!menuWin || menuWin.isDestroyed()) return;
+      if (!menuRequested || !menuWin || menuWin.isDestroyed()) return;
       menuWin.setBounds(bounds);
       menuWin.show();
       menuShownAt = Date.now();
@@ -1115,6 +1152,7 @@ function applyBubblePatch(p) {
 }
 
 function openCenter(page) {
+  if (minimizedToTray) restoreFromTray();
   if (typeof page === 'string' && page) centerPage = page;
   if (centerWin && !centerWin.isDestroyed()) {
     try { centerWin.webContents.send('center:page', centerPage); } catch (e) { /* ignore */ }
@@ -1132,7 +1170,7 @@ function openCenter(page) {
   centerWin.setAlwaysOnTop(true, 'screen-saver');
   centerWin.setVisibleOnAllWorkspaces(true);
   centerWin.loadFile(path.join(__dirname, 'renderer', 'center.html'));
-  centerWin.once('ready-to-show', () => { positionCenter(); if (centerWin && !centerWin.isDestroyed()) centerWin.show(); });
+  centerWin.once('ready-to-show', () => { positionCenter(); if (!minimizedToTray && centerWin && !centerWin.isDestroyed()) centerWin.show(); });
   centerWin.on('closed', () => { centerWin = null; });
   plog('center open page=' + centerPage);
 }
@@ -1252,6 +1290,7 @@ function helperCmd(line, quiet) {
 }
 
 function nativeDragStart() {
+  if (minimizedToTray) return;
   if (!win) { plog('nativeDragStart: no win'); return; }
   dragging = true;
   dragVelReset();
@@ -1307,7 +1346,7 @@ function armAutoFallback() {
   const h = petHwndNum();
   if (!h) return;
   helperCmd('TARGET ' + h, true);
-  helperCmd('AUTO 1', true);
+  helperCmd('AUTO ' + (minimizedToTray || cfg.mouseThrough ? '0' : '1'), true);
   plog('AUTO fallback armed hwnd=' + h);
 }
 
@@ -1392,6 +1431,10 @@ function handleHelperLine(line) {
   if (line.indexOf('EVT ') === 0) {
     const p = line.slice(4).trim().split(/\s+/);
     const kind = p[0];
+    if (minimizedToTray && ['DRAGSTART', 'CLICK', 'RCLICK'].includes(kind)) {
+      if (kind === 'DRAGSTART') helperCmd('DRAGEND', true);
+      return;
+    }
     if (kind === 'DRAGSTART') {
       plog('AUTO DRAGSTART ' + p.slice(1).join(','));
       if (!dragging) { dragging = true; dragVelReset(); }
@@ -1453,7 +1496,7 @@ function onSystemResume(reason) {
   if (win && !win.isDestroyed()) {
     try {
       win.setAlwaysOnTop(true, 'screen-saver');
-      if (!win.isVisible()) win.showInactive();
+      if (!minimizedToTray && !win.isVisible()) win.showInactive();
       win.setIgnoreMouseEvents(true, { forward: true });   // 回到「先穿透，由主进程轮询接管」
       win.webContents.send('pet:wake', Date.now());        // 让渲染端清掉可能卡住的拖拽状态
     } catch (e) { plog('WAKE win 操作失败: ' + (e && e.message)); }
@@ -1489,9 +1532,12 @@ app.whenReady().then(() => {
   try {
     tray = new Tray(trayIcon());
     tray.setToolTip(prof().name + ' · 桌宠');
-    // ★ 托盘点开的也是「右键那个菜单」⇒ 不再挂系统菜单，左右键都弹独立菜单窗
+    // 最小化时左键恢复；平时左键和右键都弹独立菜单窗。
     tray.setContextMenu(null);
-    tray.on('click', () => { plog('tray click -> menu window'); openMenuAtCursor(); });
+    tray.on('click', () => {
+      if (minimizedToTray) restoreFromTray();
+      else { plog('tray click -> menu window'); openMenuAtCursor(); }
+    });
     tray.on('right-click', () => { plog('tray right-click -> menu window'); openMenuAtCursor(); });
   } catch (e) { /* 托盘图标缺失时忽略 */ }
 
@@ -1535,7 +1581,8 @@ app.whenReady().then(() => {
   });
   // ★ 宿主侧右键入口（preload.js 的 petAPI.openMenu）：同上
   ipcMain.on('pet:open-menu', () => { lastMenuAt = Date.now(); openMenuAtCursor(); });
-  ipcMain.on('pet:hide', () => { if (win) win.hide(); });
+  ipcMain.on('pet:hide', () => minimizeToTray());
+  ipcMain.handle('pet:minimized-state', () => minimizedToTray);
   ipcMain.on('pet:quit', () => app.quit());
   ipcMain.on('pet:size', (_e, px) => applySize(Number(px)));
   // ★ 气泡高度自适应：渲染端测完气泡实际高度后上报，
@@ -1642,7 +1689,7 @@ app.whenReady().then(() => {
   ipcMain.on('center:mouse-through', (_e, v) => setMouseThrough(!!v));
   // ★ 多角色：控制中心「角色」页选排第一的 / 某个角色
   ipcMain.on('center:character', (_e, mode) => setCharacterMode(String(mode || '')));
-  ipcMain.on('center:hide', () => { if (win && !win.isDestroyed()) win.hide(); });
+  ipcMain.on('center:hide', () => minimizeToTray());
   ipcMain.on('center:quit', () => app.quit());
   ipcMain.on('center:reload-model', () => { if (win && !win.isDestroyed()) win.webContents.reload(); });
   // ★ 模型实时生成（2026-10-17）：「系统」页 —— state | open（用默认程序打开 PSD，一般是 Photoshop）| folder | rebuild

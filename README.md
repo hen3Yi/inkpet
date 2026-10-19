@@ -11,7 +11,7 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 
 > **English summary.** **InkPet** — a Live2D desktop pet for Windows, built with Electron.
 > - The window is transparent and stays on top. Only the character catches the mouse; clicks pass through everything else.
-> - It can speak through Windows TTS, Alibaba Cloud Qwen TTS, or your own TTS server.
+> - Speech is off by default. Configure Alibaba Cloud Qwen TTS or your own TTS server to enable it.
 > - Other programs can control it through a small local HTTP API.
 > - Whenever you save the PSD, it rebuilds the Live2D model with PSD2Live.
 > - The Live2D Cubism SDK is **not** included. Download it from Live2D, accept their license, then run `npm run setup`.
@@ -27,7 +27,7 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
   - 别的程序可以经本机接口让它做动作：点头、摇头、打哈欠、开心跳……
 - **换装**：衣服和配件可以单独开关。苏墨能开关的是长袖、靴子、龙角、尾巴。
 - **说话**：
-  - 语音可以用 Windows 自带语音、阿里云千问语音合成，或者你自己的语音服务。
+  - 语音默认关闭，可自行配置阿里云千问语音合成或自己的语音服务。
   - 念的时候按音量对口型。
   - 什么时候说话由你定：点它时说、空闲时偶尔说、别的程序叫它说。
 - **本机接口**：脚本或插件可以经 `127.0.0.1` 让它说话、做动作、换角色。
@@ -86,12 +86,25 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
    - 没装好 Live2D 运行库，或者找不到角色模型时，桌宠只显示一个气泡，写着缺什么。
    - 照着气泡补上就行，补好后要重新 `npm start`。
 
+## 更新
+
+退出桌宠后，在项目目录运行：
+
+```powershell
+git pull
+npm.cmd run setup
+npm.cmd start
+```
+
+更新了 Live2D 驱动时，要重新运行 `setup`，把新驱动打包进本机运行库。保留之前下载的 Cubism SDK；脚本找不到时，像首次安装一样传入 SDK 的 zip 或解压目录。设置和陪伴数据会保留。
+
 ## 怎么用
 
 | 操作 | 效果 |
 | --- | --- |
 | 左键点角色 | 点头、抖耳或甩尾，冒气泡；点中头和尾巴的反应不一样 |
 | 左键按住拖 | 挪位置；松手的地方会记住 |
+| 控制中心右上角「—」/ 菜单「最小化到托盘」 | 收起桌宠和控制中心；点击托盘图标恢复，右键托盘也能选「恢复桌宠」 |
 | 右键角色 / 点托盘图标 | 菜单：打开控制中心、换角色（有好几个角色时）、说一句 / 停下、不影响鼠标、退出 |
 | `Ctrl+Alt+U` | 停下正在念的话 |
 
@@ -107,11 +120,10 @@ Windows 上的 Live2D 桌宠。窗口透明、置顶，只有角色身上挡鼠�
 
 ## 语音
 
-在控制中心「语音」页里选合成服务，可以选几个并排好先后。会按顺序试，第一个出声的算数。
+语音默认关闭，不预选服务。在控制中心「语音」页里配置千问或自定义接口，勾选服务后打开总开关；也可以选几个并排好先后。程序只按您选择的顺序尝试，不会自动接入 Windows 语音作为兜底。
 
 | 服务 | 要什么 | 说明 |
 | --- | --- | --- |
-| Windows 自带语音 | 什么都不用装 | 音质一般。中文要系统里有中文语音，中文版 Windows 一般自带 Huihui |
 | 阿里云百炼 · 千问语音合成 | 自己的 API Key | 音质好，开口快，约 0.3～1 秒；按字数计费 |
 | 自定义接口 | 你自己的语音服务 | IndexTTS、GPT-SoVITS 这类，照[接口协议](docs/voice.md#自定义接口的协议)包一层就能接 |
 
@@ -170,8 +182,7 @@ Invoke-RestMethod -Method Post -Uri http://127.0.0.1:18932/say -Headers $h -Cont
 - **PSD2Live**：一个开源的 PSD → Live2D 模型生成工具（GPL-3.0），两种任选：
   - **官方版**：从 [Releases 页](https://github.com/tsunehimatoi/psd2live/releases)下载 `windows-x64-portable.zip`，解压到 `tools/psd2live/`，让 `PSD2Live.exe` 正好在这个目录下。自带 Java，不用另装。尾巴不会单独摆。
   - **我们改过的版本**：自己编出 `PSD2Live.jar`，放进 `tools/psd2live/`，要 Java 21（设了 `JAVA_HOME` 或者 `java` 在 PATH 里）。尾巴会摆。
-  - 推荐用我们改过的版本，它加了尾巴物理和头发网格兜底，源码和 jar 见 [THIRD_PARTY.md](THIRD_PARTY.md#psd2live)。
-  - 用上游版本也能生成，只是尾巴没有物理。
+  - 推荐先用官方免安装版。修改版尚未发布，暂时无法下载；自带的苏墨模型已经包含尾巴物理，不需要重新生成就能使用。
 
 Python、Java、PSD2Live 的路径也可以在 `config.json` 的 `modelBuild` 里写死：
 
